@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工艺路线管理系统 - 增强版</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        :root {
+            --primary-color: #2563eb;
+            --primary-light: #3b82f6;
+            --secondary-color: #10b981;
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+        
+        body {
+            background-color: #f8fafc;
+            color: var(--gray-900);
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        /* 顶部导航栏 */
+        header {
+            background-color: white;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .logo-icon {
+            color: var(--primary-color);
+            font-size: 1.75rem;
+        }
+        
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+        
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--gray-700);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+        
+        .nav-link:hover, .nav-link.active {
+            background-color: var(--gray-100);
+            color: var(--primary-color);
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-avatar {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+        
+        /* 左侧边栏 - 工艺动作库 */
+        .sidebar {
+            width: 320px;
+            background-color: white;
+            border-right: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .sidebar-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .sidebar-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-700);
+            transition: all 0.2s;
+        }
+        
+        .sidebar-tab.active {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .sidebar-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .section-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 1.125rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-light);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray-100);
+            color: var(--gray-700);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--gray-200);
+        }
+        
+        .btn-sm {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+        }
+        
+        .process-actions {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .action-item {
+            background-color: var(--gray-50);
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: move;
+            user-select: none;
+            transition: all 0.2s;
+        }
+        
+        .action-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .action-icon {
+            width: 2.5rem;
+            height: 2.5rem;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            margin-bottom: 0.5rem;
+            font-size: 1.25rem;
+        }
+        
+        .action-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+            text-align: center;
+        }
+        
+        .action-desc {
+            font-size: 0.75rem;
+            color: var(--gray-700);
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+        
+        /* 中间区域 - 工艺路线 */
+        .process-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* 工艺路线属性区 */
+        .process-header {
+            background-color: white;
+            border-bottom: 1px solid var(--gray-200);
+            padding: 1.5rem;
+        }
+        
+        .process-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 1rem;
+        }
+        
+        .process-form {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+        }
+        
+        .form-input, .form-select {
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+        }
+        
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        /* 工站管理区 */
+        .station-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .station-header {
+            padding: 1rem 1.5rem;
+            background-color: white;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .station-title {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .station-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-content: flex-start;
+        }
+        
+        .station-item {
+            width: 200px;
+            background-color: white;
+            border: 2px solid var(--gray-200);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .station-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 6px rgba(37, 99, 235, 0.1);
+        }
+        
+        .station-item.selected {
+            border-color: var(--primary-color);
+            background-color: rgba(37, 99, 235, 0.05);
+        }
+        
+        .station-number {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            background-color: var(--gray-100);
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 0.5rem;
+        }
+        
+        .station-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 0.5rem;
+        }
+        
+        .station-info {
+            font-size: 0.875rem;
+            color: var(--gray-700);
+        }
+        
+        .station-steps {
+            margin-top: 1rem;
+            font-size: 0.75rem;
+            color: var(--gray-600);
+        }
+        
+        .add-station {
+            width: 200px;
+            height: 150px;
+            border: 2px dashed var(--gray-300);
+            border-radius: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--gray-500);
+            transition: all 0.2s;
+        }
+        
+        .add-station:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .add-station i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* 步骤画布区 */
+        .step-canvas-container {
+            height: 300px;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .step-header {
+            padding: 1rem 1.5rem;
+            background-color: white;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .step-title {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .step-canvas {
+            flex: 1;
+            background-color: var(--gray-50);
+            padding: 1.5rem;
+            overflow-y: auto;
+        }
+        
+        .canvas-placeholder {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-400);
+            text-align: center;
+        }
+        
+        .canvas-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .step-flow {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            min-height: 100px;
+        }
+        
+        .step-item-canvas {
+            width: 180px;
+            background-color: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 0.5rem;
+            padding: 1rem;
+            position: relative;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .step-item-canvas:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+        }
+        
+        .step-number {
+            position: absolute;
+            top: -0.5rem;
+            left: -0.5rem;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .step-item-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .step-icon-small {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+        }
+        
+        .step-item-name {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+        }
+        
+        .step-item-info {
+            font-size: 0.75rem;
+            color: var(--gray-700);
+        }
+        
+        /* 右侧边栏 - 属性面板 */
+        .property-panel {
+            width: 380px;
+            background-color: white;
+            border-left: 1px solid var(--gray-200);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        .property-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .property-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin-bottom: 0.25rem;
+        }
+        
+        .property-subtitle {
+            color: var(--gray-700);
+            font-size: 0.875rem;
+        }
+        
+        .property-tabs {
+            display: flex;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .property-tab {
+            flex: 1;
+            padding: 0.75rem;
+            text-align: center;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--gray-700);
+            transition: all 0.2s;
+            border-bottom: 2px solid transparent;
+        }
+        
+        .property-tab.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        
+        .property-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+        }
+        
+        .property-section {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-label {
+            font-weight: 600;
+            color: var(--gray-900);
+            font-size: 0.875rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .required::after {
+            content: "*";
+            color: var(--danger-color);
+        }
+        
+        .form-textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+        
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .image-upload {
+            border: 2px dashed var(--gray-300);
+            border-radius: 0.5rem;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .image-upload:hover {
+            border-color: var(--primary-color);
+        }
+        
+        .image-upload i {
+            font-size: 2rem;
+            color: var(--gray-400);
+            margin-bottom: 1rem;
+        }
+        
+        /* 状态栏 */
+        .status-bar {
+            background-color: white;
+            border-top: 1px solid var(--gray-200);
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.875rem;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .status-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            background-color: var(--secondary-color);
+        }
+        
+        .status-dot.unsaved {
+            background-color: var(--warning-color);
+        }
+        
+        /* 模态框 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal {
+            background-color: white;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 500px;
+            overflow: hidden;
+        }
+        
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--gray-900);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 1200px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .property-panel {
+                width: 350px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .sidebar, .property-panel {
+                width: 100%;
+                height: 300px;
+            }
+            
+            .process-form {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 顶部导航栏 -->
+        <header>
+            <div class="logo">
+                <i class="fas fa-industry logo-icon"></i>
+                <span class="logo-text">工艺路线管理系统</span>
+            </div>
+            
+            <div class="nav-links">
+                <a href="#" class="nav-link active">
+                    <i class="fas fa-home"></i>
+                    <span>首页</span>
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>工艺库</span>
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-pen-fancy"></i>
+                    <span>我的设计</span>
+                </a>
+                <a href="#" class="nav-link">
+                    <i class="fas fa-question-circle"></i>
+                    <span>帮助中心</span>
+                </a>
+            </div>
+            
+            <div class="user-info">
+                <div class="user-avatar">IE</div>
+                <div>
+                    <div style="font-weight: 600;">IE工程师</div>
+                    <div style="font-size: 0.875rem; color: var(--gray-700);">工艺设计部</div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 左侧边栏 - 工艺动作库 -->
+            <div class="sidebar">
+                <div class="sidebar-tabs">
+                    <button class="sidebar-tab active" data-tab="actions">工艺动作库</button>
+                    <button class="sidebar-tab" data-tab="history">历史步骤</button>
+                </div>
+                
+                <div class="sidebar-content" id="actionsTab">
+                    <div class="section-header">
+                        <h3 class="section-title">工艺动作库</h3>
+                        <button class="btn btn-secondary btn-sm" id="toggleHelp">
+                            <i class="fas fa-question-circle"></i>
+                            帮助
+                        </button>
+                    </div>
+                    
+                    <div class="process-actions" id="actionLibrary">
+                        <!-- 9大类工艺动作 -->
+                        <div class="action-item" data-type="self-check" draggable="true">
+                            <div class="action-icon" style="background-color: #8b5cf6;">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <div class="action-name">自检</div>
+                            <div class="action-desc">自主检查作业质量</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="plug" draggable="true">
+                            <div class="action-icon" style="background-color: #3b82f6;">
+                                <i class="fas fa-plug"></i>
+                            </div>
+                            <div class="action-name">插线</div>
+                            <div class="action-desc">连接插头和接口</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="wiring" draggable="true">
+                            <div class="action-icon" style="background-color: #0ea5e9;">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            <div class="action-name">理线</div>
+                            <div class="action-desc">整理和布置线缆</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="assembly" draggable="true">
+                            <div class="action-icon" style="background-color: #10b981;">
+                                <i class="fas fa-puzzle-piece"></i>
+                            </div>
+                            <div class="action-name">扣合</div>
+                            <div class="action-desc">组装和扣合零件</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="screw" draggable="true">
+                            <div class="action-icon" style="background-color: #f59e0b;">
+                                <i class="fas fa-screwdriver"></i>
+                            </div>
+                            <div class="action-name">锁付</div>
+                            <div class="action-desc">使用螺丝固定组件</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="attach" draggable="true">
+                            <div class="action-icon" style="background-color: #ef4444;">
+                                <i class="fas fa-sticky-note"></i>
+                            </div>
+                            <div class="action-name">贴付</div>
+                            <div class="action-desc">贴标签、贴片等</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="glue" draggable="true">
+                            <div class="action-icon" style="background-color: #8b5cf6;">
+                                <i class="fas fa-tint"></i>
+                            </div>
+                            <div class="action-name">打胶</div>
+                            <div class="action-desc">点胶、涂胶作业</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="appearance" draggable="true">
+                            <div class="action-icon" style="background-color: #6366f1;">
+                                <i class="fas fa-eye"></i>
+                            </div>
+                            <div class="action-name">外观</div>
+                            <div class="action-desc">外观检查与处理</div>
+                        </div>
+                        
+                        <div class="action-item" data-type="packaging" draggable="true">
+                            <div class="action-icon" style="background-color: #14b8a6;">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="action-name">包装</div>
+                            <div class="action-desc">产品包装与标识</div>
+                        </div>
+                    </div>
+                    
+                    <div class="section-header" style="margin-top: 2rem;">
+                        <h3 class="section-title">当前工站步骤</h3>
+                        <span class="step-count" id="stepCount">0 个步骤</span>
+                    </div>
+                    
+                    <div class="process-steps" id="currentSteps" style="margin-top: 1rem;">
+                        <!-- 当前工站步骤会动态添加到这里 -->
+                        <div class="empty-state" style="text-align: center; color: var(--gray-500); padding: 2rem 0;">
+                            <i class="fas fa-arrow-left" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></i>
+                            <p>选择一个工站，然后从左侧拖拽步骤到画布</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sidebar-content hidden" id="historyTab">
+                    <div class="section-header">
+                        <h3 class="section-title">历史步骤</h3>
+                    </div>
+                    <div style="color: var(--gray-500); text-align: center; padding: 2rem 0;">
+                        <i class="fas fa-history" style="font-size: 2rem; margin-bottom: 1rem;"></i>
+                        <p>暂无历史步骤记录</p>
+                        <p style="font-size: 0.875rem; margin-top: 0.5rem;">使用过的步骤会出现在这里</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 中间区域 - 工艺路线 -->
+            <div class="process-container">
+                <!-- 工艺路线属性区 -->
+                <div class="process-header">
+                    <h2 class="process-title">工艺路线创建</h2>
+                    <div class="process-form">
+                        <div class="form-group">
+                            <label class="form-label" for="productName">
+                                <i class="fas fa-box"></i>
+                                产品名称
+                                <span class="required"></span>
+                            </label>
+                            <input type="text" id="productName" class="form-input" placeholder="例如：无线蓝牙耳机">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="productCode">
+                                <i class="fas fa-barcode"></i>
+                                产品代码
+                                <span class="required"></span>
+                            </label>
+                            <input type="text" id="productCode" class="form-input" placeholder="例如：BT-2024-001">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 工站管理区 -->
+                <div class="station-container">
+                    <div class="station-header">
+                        <h3 class="station-title">工站管理</h3>
+                        <button class="btn btn-primary btn-sm" id="addStationBtn">
+                            <i class="fas fa-plus"></i>
+                            添加工站
+                        </button>
+                    </div>
+                    
+                    <div class="station-list" id="stationList">
+                        <!-- 工站会动态添加到这里 -->
+                        <div class="add-station" id="addStationPlaceholder">
+                            <i class="fas fa-plus-circle"></i>
+                            <div>点击添加工站</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 步骤画布区 -->
+                <div class="step-canvas-container">
+                    <div class="step-header">
+                        <h3 class="step-title">作业步骤编辑</h3>
+                        <div style="font-size: 0.875rem; color: var(--gray-700);">
+                            当前工站: <span id="currentStationName" style="font-weight: 600; color: var(--primary-color);">未选择</span>
+                        </div>
+                    </div>
+                    
+                    <div class="step-canvas" id="stepCanvas">
+                        <div class="canvas-placeholder" id="canvasPlaceholder">
+                            <i class="fas fa-project-diagram"></i>
+                            <h3>请先选择一个工站</h3>
+                            <p>选择一个工站后，从左侧拖拽步骤到这里</p>
+                        </div>
+                        
+                        <div class="step-flow" id="stepFlow">
+                            <!-- 步骤会动态添加到这里 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧边栏 - 属性面板 -->
+            <div class="property-panel">
+                <div class="property-header">
+                    <h3 class="property-title" id="propertyTitle">属性设置</h3>
+                    <div class="property-subtitle" id="propertySubtitle">选择工站或步骤以编辑属性</div>
+                </div>
+                
+                <div class="property-tabs">
+                    <button class="property-tab active" data-tab="station">工站属性</button>
+                    <button class="property-tab" data-tab="step">步骤属性</button>
+                </div>
+                
+                <div class="property-content">
+                    <!-- 工站属性表单 -->
+                    <form id="stationForm" class="property-form">
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-info-circle"></i>
+                                基本信息
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationName">
+                                    工站名称
+                                    <span class="required"></span>
+                                </label>
+                                <input type="text" id="stationName" class="form-input" placeholder="例如：主板组装工站">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationCode">
+                                    工序编号
+                                    <span class="required"></span>
+                                </label>
+                                <input type="text" id="stationCode" class="form-input" placeholder="例如：S001">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationWorkers">
+                                    作业人数
+                                </label>
+                                <input type="number" id="stationWorkers" class="form-input" placeholder="例如：2" min="1" value="1">
+                            </div>
+                        </div>
+                        
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-history"></i>
+                                版本信息
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationVersion">
+                                    版本
+                                </label>
+                                <input type="text" id="stationVersion" class="form-input" placeholder="例如：V1.0" value="V1.0">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationCreateDate">
+                                    制定日期
+                                </label>
+                                <input type="date" id="stationCreateDate" class="form-input" value="2024-03-20">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationModifyDate">
+                                    修改日期
+                                </label>
+                                <input type="date" id="stationModifyDate" class="form-input" value="2024-03-20">
+                            </div>
+                        </div>
+                        
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-users"></i>
+                                人员信息
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationCreator">
+                                    编制人
+                                </label>
+                                <input type="text" id="stationCreator" class="form-input" placeholder="例如：张三">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationReviewer">
+                                    会签人
+                                </label>
+                                <input type="text" id="stationReviewer" class="form-input" placeholder="例如：李四, 王五">
+                            </div>
+                        </div>
+                        
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-tools"></i>
+                                设备与标识
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stationEquipment">
+                                    所需工装/设备
+                                </label>
+                                <input type="text" id="stationEquipment" class="form-input" placeholder="例如：电动起子, 扭力扳手">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="section-label">标识</label>
+                                <div class="checkbox-grid">
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="staticProtect" name="stationFlags">
+                                        <label for="staticProtect">静电防护</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="appearanceCheck" name="stationFlags">
+                                        <label for="appearanceCheck">外观检查</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="keyStation" name="stationFlags">
+                                        <label for="keyStation">重点岗位</label>
+                                    </div>
+                                    <div class="checkbox-item">
+                                        <input type="checkbox" id="functionTest" name="stationFlags">
+                                        <label for="functionTest">功能测试</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 2rem;">
+                            <button type="button" class="btn btn-primary" id="saveStationBtn" style="width: 100%;">
+                                <i class="fas fa-save"></i>
+                                保存工站属性
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- 步骤属性表单 -->
+                    <form id="stepForm" class="property-form hidden">
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-info-circle"></i>
+                                基本信息
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepName">
+                                    步骤名称
+                                    <span class="required"></span>
+                                </label>
+                                <input type="text" id="stepName" class="form-input" placeholder="例如：锁紧主板螺丝">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepTypeSelect">
+                                    步骤类型
+                                </label>
+                                <select id="stepTypeSelect" class="form-select" disabled>
+                                    <option value="self-check">自检</option>
+                                    <option value="plug">插线</option>
+                                    <option value="wiring">理线</option>
+                                    <option value="assembly">扣合</option>
+                                    <option value="screw">锁付</option>
+                                    <option value="attach">贴付</option>
+                                    <option value="glue">打胶</option>
+                                    <option value="appearance">外观</option>
+                                    <option value="packaging">包装</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepTime">
+                                    标准工时(秒)
+                                    <span class="required"></span>
+                                </label>
+                                <input type="number" id="stepTime" class="form-input" placeholder="例如：120" min="1" value="60">
+                            </div>
+                        </div>
+                        
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-tools"></i>
+                                工具与设备
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepTools">
+                                    所需工具
+                                </label>
+                                <input type="text" id="stepTools" class="form-input" placeholder="例如：电动起子、扭力扳手">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepEquipment">
+                                    所需工装/设备
+                                </label>
+                                <input type="text" id="stepEquipment" class="form-input" placeholder="例如：自动锁螺丝机、点胶机">
+                            </div>
+                        </div>
+                        
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-clipboard-check"></i>
+                                作业要点
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepKeyPoints">
+                                    作业要点
+                                </label>
+                                <textarea id="stepKeyPoints" class="form-textarea" placeholder="详细描述作业的关键要点和注意事项..."></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepDescription">
+                                    详细描述
+                                </label>
+                                <textarea id="stepDescription" class="form-textarea" placeholder="详细描述步骤的操作方法..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                质量控制
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepDefects">
+                                    不良现象
+                                </label>
+                                <textarea id="stepDefects" class="form-textarea" placeholder="描述可能发生的不良现象..."></textarea>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="stepControlPoints">
+                                    控制点
+                                </label>
+                                <textarea id="stepControlPoints" class="form-textarea" placeholder="描述质量控制的关键控制点..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="property-section">
+                            <div class="section-label">
+                                <i class="fas fa-image"></i>
+                                参考图片
+                            </div>
+                            
+                            <div class="image-upload" id="imageUpload">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>点击上传图片或拖放文件到此区域</p>
+                                <p style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--gray-500);">支持 JPG, PNG 格式，最大 5MB</p>
+                            </div>
+                        </div>
+                        
+                        <div style="display: flex; gap: 0.75rem; margin-top: 2rem;">
+                            <button type="button" class="btn btn-primary" id="saveStepBtn" style="flex: 1;">
+                                <i class="fas fa-check"></i>
+                                保存步骤
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="deleteStepBtn">
+                                <i class="fas fa-trash"></i>
+                                删除
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 状态栏 -->
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot unsaved"></div>
+                <span>未保存</span>
+            </div>
+            <div>
+                <span>当前产品: </span>
+                <span id="currentProductName" style="font-weight: 600;">未设置</span>
+                <span style="margin: 0 1rem;">|</span>
+                <span>工站数量: </span>
+                <span id="stationCount" style="font-weight: 600;">0</span>
+            </div>
+            <div>步骤总数: <span id="totalSteps">0</span></div>
+        </div>
+    </div>
+    
+    <!-- 添加工站模态框 -->
+    <div class="modal-overlay" id="addStationModal" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">添加工站</h3>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="newStationName">
+                        工站名称
+                        <span class="required"></span>
+                    </label>
+                    <input type="text" id="newStationName" class="form-input" placeholder="例如：主板组装工站">
+                </div>
+                
+                <div class="form-group" style="margin-top: 1rem;">
+                    <label class="form-label" for="newStationCode">
+                        工序编号
+                        <span class="required"></span>
+                    </label>
+                    <input type="text" id="newStationCode" class="form-input" placeholder="例如：S001">
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelAddStation">
+                    取消
+                </button>
+                <button class="btn btn-primary" id="confirmAddStation">
+                    添加
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let currentProcess = {
+            productName: "",
+            productCode: "",
+            stations: [],
+            selectedStationIndex: -1,
+            selectedStepIndex: -1
+        };
+        
+        // 步骤类型配置
+        const stepTypeConfig = {
+            "self-check": { icon: "fa-clipboard-check", color: "#8b5cf6", name: "自检" },
+            "plug": { icon: "fa-plug", color: "#3b82f6", name: "插线" },
+            "wiring": { icon: "fa-network-wired", color: "#0ea5e9", name: "理线" },
+            "assembly": { icon: "fa-puzzle-piece", color: "#10b981", name: "扣合" },
+            "screw": { icon: "fa-screwdriver", color: "#f59e0b", name: "锁付" },
+            "attach": { icon: "fa-sticky-note", color: "#ef4444", name: "贴付" },
+            "glue": { icon: "fa-tint", color: "#8b5cf6", name: "打胶" },
+            "appearance": { icon: "fa-eye", color: "#6366f1", name: "外观" },
+            "packaging": { icon: "fa-box", color: "#14b8a6", name: "包装" }
+        };
+        
+        // DOM 元素引用
+        const productNameInput = document.getElementById('productName');
+        const productCodeInput = document.getElementById('productCode');
+        const stationList = document.getElementById('stationList');
+        const addStationBtn = document.getElementById('addStationBtn');
+        const addStationPlaceholder = document.getElementById('addStationPlaceholder');
+        const currentStationName = document.getElementById('currentStationName');
+        const stepCanvas = document.getElementById('stepCanvas');
+        const canvasPlaceholder = document.getElementById('canvasPlaceholder');
+        const stepFlow = document.getElementById('stepFlow');
+        const currentProductName = document.getElementById('currentProductName');
+        const stationCount = document.getElementById('stationCount');
+        const totalSteps = document.getElementById('totalSteps');
+        
+        // 属性面板元素
+        const propertyTitle = document.getElementById('propertyTitle');
+        const propertySubtitle = document.getElementById('propertySubtitle');
+        const stationForm = document.getElementById('stationForm');
+        const stepForm = document.getElementById('stepForm');
+        const propertyTabs = document.querySelectorAll('.property-tab');
+        
+        // 工站表单元素
+        const stationNameInput = document.getElementById('stationName');
+        const stationCodeInput = document.getElementById('stationCode');
+        const stationWorkersInput = document.getElementById('stationWorkers');
+        const stationVersionInput = document.getElementById('stationVersion');
+        const stationCreateDateInput = document.getElementById('stationCreateDate');
+        const stationModifyDateInput = document.getElementById('stationModifyDate');
+        const stationCreatorInput = document.getElementById('stationCreator');
+        const stationReviewerInput = document.getElementById('stationReviewer');
+        const stationEquipmentInput = document.getElementById('stationEquipment');
+        const saveStationBtn = document.getElementById('saveStationBtn');
+        
+        // 步骤表单元素
+        const stepNameInput = document.getElementById('stepName');
+        const stepTypeSelect = document.getElementById('stepTypeSelect');
+        const stepTimeInput = document.getElementById('stepTime');
+        const stepToolsInput = document.getElementById('stepTools');
+        const stepEquipmentInput = document.getElementById('stepEquipment');
+        const stepKeyPointsInput = document.getElementById('stepKeyPoints');
+        const stepDescriptionInput = document.getElementById('stepDescription');
+        const stepDefectsInput = document.getElementById('stepDefects');
+        const stepControlPointsInput = document.getElementById('stepControlPoints');
+        const saveStepBtn = document.getElementById('saveStepBtn');
+        const deleteStepBtn = document.getElementById('deleteStepBtn');
+        
+        // 模态框元素
+        const addStationModal = document.getElementById('addStationModal');
+        const newStationNameInput = document.getElementById('newStationName');
+        const newStationCodeInput = document.getElementById('newStationCode');
+        const cancelAddStationBtn = document.getElementById('cancelAddStation');
+        const confirmAddStationBtn = document.getElementById('confirmAddStation');
+        
+        // 侧边栏标签页
+        const sidebarTabs = document.querySelectorAll('.sidebar-tab');
+        const actionsTab = document.getElementById('actionsTab');
+        const historyTab = document.getElementById('historyTab');
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期
+            const today = new Date().toISOString().split('T')[0];
+            stationCreateDateInput.value = today;
+            stationModifyDateInput.value = today;
+            
+            // 绑定事件监听器
+            bindEvents();
+            
+            // 初始化拖拽功能
+            initDragAndDrop();
+            
+            // 更新界面
+            updateUI();
+        });
+        
+        // 绑定事件监听器
+        function bindEvents() {
+            // 产品名称和代码输入
+            productNameInput.addEventListener('input', function() {
+                currentProcess.productName = this.value;
+                currentProductName.textContent = this.value || "未设置";
+                updateStatusBar(false);
+            });
+            
+            productCodeInput.addEventListener('input', function() {
+                currentProcess.productCode = this.value;
+                updateStatusBar(false);
+            });
+            
+            // 添加工站按钮
+            addStationBtn.addEventListener('click', showAddStationModal);
+            addStationPlaceholder.addEventListener('click', showAddStationModal);
+            
+            // 模态框按钮
+            cancelAddStationBtn.addEventListener('click', function() {
+                addStationModal.style.display = 'none';
+            });
+            
+            confirmAddStationBtn.addEventListener('click', addNewStation);
+            
+            // 保存工站属性
+            saveStationBtn.addEventListener('click', saveStationProperties);
+            
+            // 保存步骤属性
+            saveStepBtn.addEventListener('click', saveStepProperties);
+            
+            // 删除步骤
+            deleteStepBtn.addEventListener('click', deleteCurrentStep);
+            
+            // 属性标签页切换
+            propertyTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 更新标签状态
+                    propertyTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 显示对应的表单
+                    if (tabId === 'station') {
+                        stationForm.classList.remove('hidden');
+                        stepForm.classList.add('hidden');
+                        propertyTitle.textContent = '工站属性';
+                        propertySubtitle.textContent = currentProcess.selectedStationIndex >= 0 
+                            ? `编辑: ${currentProcess.stations[currentProcess.selectedStationIndex].name}` 
+                            : '选择工站以编辑属性';
+                    } else {
+                        stationForm.classList.add('hidden');
+                        stepForm.classList.remove('hidden');
+                        propertyTitle.textContent = '步骤属性';
+                        if (currentProcess.selectedStationIndex >= 0 && currentProcess.selectedStepIndex >= 0) {
+                            const station = currentProcess.stations[currentProcess.selectedStationIndex];
+                            const step = station.steps[currentProcess.selectedStepIndex];
+                            propertySubtitle.textContent = `编辑: ${step.name}`;
+                        } else {
+                            propertySubtitle.textContent = '选择步骤以编辑属性';
+                        }
+                    }
+                });
+            });
+            
+            // 侧边栏标签页切换
+            sidebarTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const tabId = this.getAttribute('data-tab');
+                    
+                    // 更新标签状态
+                    sidebarTabs.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // 显示对应的内容
+                    if (tabId === 'actions') {
+                        actionsTab.classList.remove('hidden');
+                        historyTab.classList.add('hidden');
+                    } else {
+                        actionsTab.classList.add('hidden');
+                        historyTab.classList.remove('hidden');
+                    }
+                });
+            });
+            
+            // 图片上传
+            document.getElementById('imageUpload').addEventListener('click', function() {
+                // 在实际应用中，这里会触发文件选择对话框
+                alert('在实际应用中，这里会打开文件选择器上传图片');
+            });
+            
+            // 帮助按钮
+            document.getElementById('toggleHelp').addEventListener('click', function() {
+                alert('使用帮助：\n1. 填写产品名称和代码\n2. 点击"添加工站"按钮创建工站\n3. 点击工站块选择要编辑的工站\n4. 从左侧拖拽步骤到画布\n5. 在右侧属性面板中编辑工站或步骤属性');
+            });
+        }
+        
+        // 初始化拖拽功能
+        function initDragAndDrop() {
+            // 为动作库中的步骤添加拖拽事件
+            const actionItems = document.querySelectorAll('.action-item');
+            actionItems.forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', this.getAttribute('data-type'));
+                    this.style.opacity = '0.5';
+                });
+                
+                item.addEventListener('dragend', function() {
+                    this.style.opacity = '1';
+                });
+            });
+            
+            // 为步骤画布添加拖放事件
+            stepCanvas.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                if (currentProcess.selectedStationIndex >= 0) {
+                    this.style.border = '2px dashed var(--primary-color)';
+                }
+            });
+            
+            stepCanvas.addEventListener('dragleave', function() {
+                this.style.border = 'none';
+            });
+            
+            stepCanvas.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.style.border = 'none';
+                
+                if (currentProcess.selectedStationIndex < 0) {
+                    alert('请先选择一个工站！');
+                    return;
+                }
+                
+                const stepType = e.dataTransfer.getData('text/plain');
+                if (stepType) {
+                    addStepToStation(stepType);
+                }
+            });
+        }
+        
+        // 显示添加工站模态框
+        function showAddStationModal() {
+            newStationNameInput.value = '';
+            newStationCodeInput.value = '';
+            addStationModal.style.display = 'flex';
+            newStationNameInput.focus();
+        }
+        
+        // 添加新工站
+        function addNewStation() {
+            const name = newStationNameInput.value.trim();
+            const code = newStationCodeInput.value.trim();
+            
+            if (!name || !code) {
+                alert('请填写工站名称和工序编号！');
+                return;
+            }
+            
+            // 创建新工站
+            const newStation = {
+                id: Date.now(),
+                name: name,
+                code: code,
+                workers: 1,
+                version: "V1.0",
+                createDate: new Date().toISOString().split('T')[0],
+                modifyDate: new Date().toISOString().split('T')[0],
+                creator: "",
+                reviewer: "",
+                equipment: "",
+                flags: {
+                    staticProtect: false,
+                    appearanceCheck: false,
+                    keyStation: false,
+                    functionTest: false
+                },
+                steps: []
+            };
+            
+            // 添加到工站列表
+            currentProcess.stations.push(newStation);
+            
+            // 关闭模态框
+            addStationModal.style.display = 'none';
+            
+            // 更新界面
+            updateUI();
+            
+            // 自动选中新添加的工站
+            selectStation(currentProcess.stations.length - 1);
+        }
+        
+        // 添加工站步骤
+        function addStepToStation(stepType) {
+            if (currentProcess.selectedStationIndex < 0) return;
+            
+            const station = currentProcess.stations[currentProcess.selectedStationIndex];
+            const config = stepTypeConfig[stepType];
+            
+            // 创建新步骤
+            const newStep = {
+                id: Date.now(),
+                type: stepType,
+                name: config.name + (station.steps.filter(s => s.type === stepType).length + 1),
+                time: 60,
+                tools: "",
+                equipment: "",
+                keyPoints: "",
+                description: "",
+                defects: "",
+                controlPoints: "",
+                image: ""
+            };
+            
+            // 添加到工站步骤列表
+            station.steps.push(newStep);
+            
+            // 更新界面
+            updateUI();
+            
+            // 自动选中新添加的步骤
+            selectStep(station.steps.length - 1);
+        }
+        
+        // 更新整个UI
+        function updateUI() {
+            updateStationList();
+            updateStepCanvas();
+            updatePropertyPanel();
+            updateStatusBar();
+        }
+        
+        // 更新工站列表
+        function updateStationList() {
+            // 清空工站列表
+            stationList.innerHTML = '';
+            
+            // 添加工站项
+            currentProcess.stations.forEach((station, index) => {
+                const stationItem = document.createElement('div');
+                stationItem.className = 'station-item';
+                if (index === currentProcess.selectedStationIndex) {
+                    stationItem.classList.add('selected');
+                }
+                stationItem.setAttribute('data-index', index);
+                
+                // 工站标识
+                const flags = [];
+                if (station.flags.staticProtect) flags.push('静电');
+                if (station.flags.appearanceCheck) flags.push('外观');
+                if (station.flags.keyStation) flags.push('重点');
+                if (station.flags.functionTest) flags.push('测试');
+                
+                stationItem.innerHTML = `
+                    <div class="station-number">${station.code}</div>
+                    <div class="station-name">${station.name}</div>
+                    <div class="station-info">
+                        <div><i class="fas fa-users"></i> ${station.workers}人</div>
+                        <div><i class="fas fa-tools"></i> ${station.equipment || '无'}</div>
+                        ${flags.length > 0 ? `<div style="margin-top: 0.5rem;">${flags.map(f => `<span style="display: inline-block; background-color: var(--gray-100); padding: 0.125rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; margin-right: 0.25rem;">${f}</span>`).join('')}</div>` : ''}
+                    </div>
+                    <div class="station-steps">
+                        <i class="fas fa-list-ol"></i> ${station.steps.length} 个步骤
+                    </div>
+                `;
+                
+                // 点击选择工站
+                stationItem.addEventListener('click', function() {
+                    selectStation(index);
+                });
+                
+                stationList.appendChild(stationItem);
+            });
+            
+            // 添加"添加工站"按钮
+            stationList.appendChild(addStationPlaceholder);
+            
+            // 更新工站计数
+            stationCount.textContent = currentProcess.stations.length;
+            
+            // 更新步骤总数
+            const totalStepsCount = currentProcess.stations.reduce((total, station) => total + station.steps.length, 0);
+            totalSteps.textContent = totalStepsCount;
+        }
+        
+        // 更新步骤画布
+        function updateStepCanvas() {
+            // 清空步骤画布
+            stepFlow.innerHTML = '';
+            
+            if (currentProcess.selectedStationIndex < 0) {
+                canvasPlaceholder.style.display = 'flex';
+                currentStationName.textContent = "未选择";
+                return;
+            }
+            
+            const station = currentProcess.stations[currentProcess.selectedStationIndex];
+            
+            if (station.steps.length === 0) {
+                canvasPlaceholder.style.display = 'flex';
+                currentStationName.textContent = station.name;
+                return;
+            }
+            
+            // 隐藏占位符
+            canvasPlaceholder.style.display = 'none';
+            currentStationName.textContent = station.name;
+            
+            // 添加工站步骤
+            station.steps.forEach((step, index) => {
+                const config = stepTypeConfig[step.type];
+                const isSelected = index === currentProcess.selectedStepIndex;
+                
+                const stepItem = document.createElement('div');
+                stepItem.className = 'step-item-canvas';
+                stepItem.setAttribute('data-index', index);
+                if (isSelected) {
+                    stepItem.style.borderColor = 'var(--primary-color)';
+                    stepItem.style.boxShadow = '0 2px 8px rgba(37, 99, 235, 0.2)';
+                }
+                
+                stepItem.innerHTML = `
+                    <div class="step-number">${index + 1}</div>
+                    <div class="step-item-header">
+                        <div class="step-icon-small" style="background-color: ${config.color};">
+                            <i class="fas ${config.icon}"></i>
+                        </div>
+                        <div class="step-item-name">${step.name}</div>
+                    </div>
+                    <div class="step-item-info">
+                        <div><i class="fas fa-clock"></i> ${step.time}秒</div>
+                        ${step.tools ? `<div style="margin-top: 0.25rem;"><i class="fas fa-tools"></i> ${step.tools}</div>` : ''}
+                        ${step.keyPoints ? `<div style="margin-top: 0.25rem; font-size: 0.7rem; color: var(--gray-600);">${step.keyPoints.substring(0, 30)}${step.keyPoints.length > 30 ? '...' : ''}</div>` : ''}
+                    </div>
+                `;
+                
+                // 点击选择步骤
+                stepItem.addEventListener('click', function() {
+                    selectStep(index);
+                });
+                
+                stepFlow.appendChild(stepItem);
+            });
+        }
+        
+        // 更新属性面板
+        function updatePropertyPanel() {
+            if (currentProcess.selectedStationIndex < 0) {
+                // 没有选中工站
+                propertyTitle.textContent = '属性设置';
+                propertySubtitle.textContent = '选择工站以编辑属性';
+                
+                // 切换到工站属性标签
+                propertyTabs[0].click();
+                
+                // 禁用工站表单
+                disableStationForm();
+            } else {
+                const station = currentProcess.stations[currentProcess.selectedStationIndex];
+                
+                // 更新工站表单
+                stationNameInput.value = station.name;
+                stationCodeInput.value = station.code;
+                stationWorkersInput.value = station.workers;
+                stationVersionInput.value = station.version;
+                stationCreateDateInput.value = station.createDate;
+                stationModifyDateInput.value = station.modifyDate;
+                stationCreatorInput.value = station.creator;
+                stationReviewerInput.value = station.reviewer;
+                stationEquipmentInput.value = station.equipment;
+                
+                // 更新标识复选框
+                document.getElementById('staticProtect').checked = station.flags.staticProtect;
+                document.getElementById('appearanceCheck').checked = station.flags.appearanceCheck;
+                document.getElementById('keyStation').checked = station.flags.keyStation;
+                document.getElementById('functionTest').checked = station.flags.functionTest;
+                
+                // 启用工站表单
+                enableStationForm();
+            }
+            
+            if (currentProcess.selectedStationIndex >= 0 && currentProcess.selectedStepIndex >= 0) {
+                const station = currentProcess.stations[currentProcess.selectedStationIndex];
+                const step = station.steps[currentProcess.selectedStepIndex];
+                const config = stepTypeConfig[step.type];
+                
+                // 更新步骤表单
+                stepNameInput.value = step.name;
+                stepTypeSelect.value = step.type;
+                stepTimeInput.value = step.time;
+                stepToolsInput.value = step.tools;
+                stepEquipmentInput.value = step.equipment;
+                stepKeyPointsInput.value = step.keyPoints;
+                stepDescriptionInput.value = step.description;
+                stepDefectsInput.value = step.defects;
+                stepControlPointsInput.value = step.controlPoints;
+                
+                // 更新属性标题
+                if (propertyTabs[1].classList.contains('active')) {
+                    propertySubtitle.textContent = `编辑: ${step.name}`;
+                }
+            } else {
+                // 清空步骤表单
+                stepNameInput.value = '';
+                stepTypeSelect.value = 'self-check';
+                stepTimeInput.value = 60;
+                stepToolsInput.value = '';
+                stepEquipmentInput.value = '';
+                stepKeyPointsInput.value = '';
+                stepDescriptionInput.value = '';
+                stepDefectsInput.value = '';
+                stepControlPointsInput.value = '';
+            }
+        }
+        
+        // 禁用工站表单
+        function disableStationForm() {
+            stationNameInput.disabled = true;
+            stationCodeInput.disabled = true;
+            stationWorkersInput.disabled = true;
+            stationVersionInput.disabled = true;
+            stationCreateDateInput.disabled = true;
+            stationModifyDateInput.disabled = true;
+            stationCreatorInput.disabled = true;
+            stationReviewerInput.disabled = true;
+            stationEquipmentInput.disabled = true;
+            document.querySelectorAll('#stationForm input[type="checkbox"]').forEach(cb => {
+                cb.disabled = true;
+            });
+            saveStationBtn.disabled = true;
+        }
+        
+        // 启用工站表单
+        function enableStationForm() {
+            stationNameInput.disabled = false;
+            stationCodeInput.disabled = false;
+            stationWorkersInput.disabled = false;
+            stationVersionInput.disabled = false;
+            stationCreateDateInput.disabled = false;
+            stationModifyDateInput.disabled = false;
+            stationCreatorInput.disabled = false;
+            stationReviewerInput.disabled = false;
+            stationEquipmentInput.disabled = false;
+            document.querySelectorAll('#stationForm input[type="checkbox"]').forEach(cb => {
+                cb.disabled = false;
+            });
+            saveStationBtn.disabled = false;
+        }
+        
+        // 更新状态栏
+        function updateStatusBar() {
+            const statusDot = document.querySelector('.status-dot');
+            const isSaved = false; // 在实际应用中，这里会根据保存状态判断
+            
+            if (isSaved) {
+                statusDot.classList.remove('unsaved');
+                statusDot.style.backgroundColor = 'var(--secondary-color)';
+                statusDot.nextElementSibling.textContent = '已保存';
+            } else {
+                statusDot.classList.add('unsaved');
+                statusDot.style.backgroundColor = 'var(--warning-color)';
+                statusDot.nextElementSibling.textContent = '未保存';
+            }
+        }
+        
+        // 选择工站
+        function selectStation(index) {
+            if (index >= 0 && index < currentProcess.stations.length) {
+                currentProcess.selectedStationIndex = index;
+                currentProcess.selectedStepIndex = -1; // 取消步骤选择
+                
+                // 切换到工站属性标签
+                propertyTabs[0].click();
+                
+                // 更新界面
+                updateUI();
+            }
+        }
+        
+        // 选择步骤
+        function selectStep(index) {
+            if (currentProcess.selectedStationIndex < 0) return;
+            
+            const station = currentProcess.stations[currentProcess.selectedStationIndex];
+            if (index >= 0 && index < station.steps.length) {
+                currentProcess.selectedStepIndex = index;
+                
+                // 切换到步骤属性标签
+                propertyTabs[1].click();
+                
+                // 更新界面
+                updateStepCanvas();
+                updatePropertyPanel();
+            }
+        }
+        
+        // 保存工站属性
+        function saveStationProperties() {
+            if (currentProcess.selectedStationIndex < 0) return;
+            
+            const station = currentProcess.stations[currentProcess.selectedStationIndex];
+            
+            // 更新工站属性
+            station.name = stationNameInput.value.trim() || station.name;
+            station.code = stationCodeInput.value.trim() || station.code;
+            station.workers = parseInt(stationWorkersInput.value) || 1;
+            station.version = stationVersionInput.value.trim() || station.version;
+            station.createDate = stationCreateDateInput.value || station.createDate;
+            station.modifyDate = stationModifyDateInput.value || station.modifyDate;
+            station.creator = stationCreatorInput.value.trim();
+            station.reviewer = stationReviewerInput.value.trim();
+            station.equipment = stationEquipmentInput.value.trim();
+            
+            // 更新标识
+            station.flags.staticProtect = document.getElementById('staticProtect').checked;
+            station.flags.appearanceCheck = document.getElementById('appearanceCheck').checked;
+            station.flags.keyStation = document.getElementById('keyStation').checked;
+            station.flags.functionTest = document.getElementById('functionTest').checked;
+            
+            // 更新界面
+            updateUI();
+            
+            // 显示成功消息
+            alert('工站属性已保存！');
+        }
+        
+        // 保存步骤属性
+        function saveStepProperties() {
+            if (currentProcess.selectedStationIndex < 0 || currentProcess.selectedStepIndex < 0) return;
+            
+            const station = currentProcess.stations[currentProcess.selectedStationIndex];
+            const step = station.steps[currentProcess.selectedStepIndex];
+            
+            // 更新步骤属性
+            step.name = stepNameInput.value.trim() || step.name;
+            step.time = parseInt(stepTimeInput.value) || 60;
+            step.tools = stepToolsInput.value.trim();
+            step.equipment = stepEquipmentInput.value.trim();
+            step.keyPoints = stepKeyPointsInput.value.trim();
+            step.description = stepDescriptionInput.value.trim();
+            step.defects = stepDefectsInput.value.trim();
+            step.controlPoints = stepControlPointsInput.value.trim();
+            
+            // 更新界面
+            updateUI();
+            
+            // 显示成功消息
+            alert('步骤属性已保存！');
+        }
+        
+        // 删除当前步骤
+        function deleteCurrentStep() {
+            if (currentProcess.selectedStationIndex < 0 || currentProcess.selectedStepIndex < 0) return;
+            
+            if (confirm('确定要删除此步骤吗？')) {
+                const station = currentProcess.stations[currentProcess.selectedStationIndex];
+                station.steps.splice(currentProcess.selectedStepIndex, 1);
+                currentProcess.selectedStepIndex = -1;
+                
+                // 更新界面
+                updateUI();
+            }
+        }
+    </script>
+</body>
+</html>
