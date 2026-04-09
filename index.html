@@ -3,427 +3,405 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工艺路线管理系统 - 增强版</title>
+<title>工艺路线管理系统</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family: "Microsoft YaHei",sans-serif;}
-body{background:#f5f7fa;color:#333;}
-.top{background:#2a4365;color:white;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;}
-.top h1{font-size:20px;font-weight:500;}
-.nav{display:flex;gap:16px;}
-.nav a{color:white;text-decoration:none;padding:6px 10px;border-radius:4px;}
+*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif;}
+body{background:#f7f8fa;color:#333;}
+.top{background:#2a4365;color:white;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;}
+.top h1{font-size:22px;font-weight:500;}
+.nav{display:flex;gap:20px;}
+.nav a{color:white;text-decoration:none;padding:8px 12px;border-radius:6px;cursor:pointer;}
 .nav a.active{background:#4299e1;}
-.container{max-width:1400px;margin:20px auto;padding:0 10px;}
-.panel{background:white;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);padding:16px;margin-bottom:16px;}
-.panel h2{font-size:18px;margin-bottom:12px;color:#2d3748;border-left:4px solid #4299e1;padding-left:10px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
-.form-group{margin-bottom:12px;}
-label{display:block;margin-bottom:6px;font-size:14px;color:#4a5568;}
-input,select,textarea{width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:6px;font-size:14px;}
-.btn{padding:8px 14px;background:#4299e1;color:white;border:none;border-radius:6px;cursor:pointer;margin-right:6px;margin-bottom:6px;}
+.container{max-width:1200px;margin:40px auto;padding:0 20px;}
+.home-title{text-align:center;font-size:24px;margin-bottom:30px;color:#2d3748;}
+.card-box{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;}
+.card{background:white;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.06);padding:24px;text-align:center;cursor:pointer;transition:0.2s;}
+.card:hover{transform:translateY(-4px);box-shadow:0 6px 20px rgba(0,0,0,0.08);}
+.card h3{font-size:18px;margin-bottom:10px;color:#2a4365;}
+.card p{font-size:14px;color:#718096;margin-bottom:16px;}
+.card .btn{width:100%;padding:10px;background:#4299e1;color:white;border:none;border-radius:8px;font-size:14px;cursor:pointer;}
+.page{display:none;}
+.page.active{display:block;}
+.panel{background:white;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.05);padding:24px;margin-bottom:20px;}
+.panel h2{font-size:20px;margin-bottom:20px;color:#2d3748;border-left:4px solid #4299e1;padding-left:12px;}
+.form-group{margin-bottom:16px;}
+label{display:block;margin-bottom:8px;font-size:14px;color:#4a5568;}
+input,select,textarea{width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.btn{padding:10px 18px;background:#4299e1;color:white;border:none;border-radius:8px;cursor:pointer;margin-right:10px;margin-bottom:10px;}
 .btn.del{background:#f56565;}
 .btn.gray{background:#718096;}
-.grid{display:grid;grid-template-columns:280px 1fr 320px;gap:14px;}
-.action-list{border:1px solid #e2e8f0;border-radius:6px;padding:10px;height:420px;overflow-y:auto;}
-.action-item{background:#f7fafc;padding:8px 10px;border-radius:4px;margin-bottom:6px;cursor:move;border-left:3px solid #4299e1;}
-.canvas{border:2px dashed #cbd5e0;border-radius:6px;padding:14px;min-height:420px;}
-.step-item{background:white;border:1px solid #48bb78;padding:10px;border-radius:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;}
-.step-item button{background:#f56565;color:white;border:none;width:22px;height:22px;border-radius:50%;cursor:pointer;}
-.tab{display:flex;border-bottom:1px solid #e2e8f0;margin-bottom:12px;}
-.tab div{padding:8px 14px;cursor:pointer;}
-.tab div.active{border-bottom:2px solid #4299e1;color:#4299e1;font-weight:bold;}
-.tab-pane{display:none;}
-.tab-pane.active{display:block;}
-.list-item{padding:10px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;}
-.list-item:last-child{border-bottom:none;}
-.empty{color:#a0aec0;text-align:center;padding:30px 0;}
+.btn.success{background:#48bb78;}
+.list-item{padding:12px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;}
+.empty{color:#a0aec0;text-align:center;padding:40px 0;}
+.img-item{display:inline-block;margin:10px;position:relative;}
+.img-item img{max-width:140px;max-height:140px;border-radius:8px;}
+.del-img{position:absolute;top:-8px;right:-8px;background:#f56565;color:white;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;}
+.step-item{background:white;border:1px solid #48bb78;padding:12px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
 </style>
 </head>
 
 <body>
+
 <div class="top">
-<h1>工艺路线管理系统 - 增强版</h1>
-<div class="nav">
-<a class="active" onclick="go('home')">首页</a >
-<a onclick="go('mydesign')">我的设计</a >
-<a onclick="go('library')">工艺库</a >
-<a onclick="go('admin')">后台管理</a >
-</div>
+  <h1>工艺路线管理系统</h1>
+  <div class="nav">
+    <a class="active" onclick="go('home')">首页</a >
+    <a onclick="go('mydesign')">我的设计</a >
+    <a onclick="go('library')">工艺库</a >
+  </div>
 </div>
 
 <div class="container">
 
-<!-- 首页 -->
-<div id="page-home" class="page">
-<div class="panel">
-<h2>产品信息</h2>
-<div class="form-row">
-<div class="form-group">
-<label>产品名称</label>
-<input id="product-name" placeholder="例如：蓝牙耳机">
-</div>
-<div class="form-group">
-<label>产品代码</label>
-<input id="product-code" placeholder="例如：PROD-2026-001">
-</div>
-</div>
-<button class="btn" onclick="saveProduct()">保存产品信息</button>
-</div>
-
-<div class="grid">
-<div class="panel">
-<h2>工艺动作库</h2>
-<div class="action-list" id="action-lib">
-<div class="action-item" draggable="true" data-name="自检">自检</div>
-<div class="action-item" draggable="true" data-name="插线">插线</div>
-<div class="action-item" draggable="true" data-name="理线">理线</div>
-<div class="action-item" draggable="true" data-name="扣合">扣合</div>
-<div class="action-item" draggable="true" data-name="锁付">锁付</div>
-<div class="action-item" draggable="true" data-name="贴付">贴付</div>
-<div class="action-item" draggable="true" data-name="打胶">打胶</div>
-<div class="action-item" draggable="true" data-name="外观检查">外观检查</div>
-<div class="action-item" draggable="true" data-name="包装">包装</div>
-</div>
-<h2 style="margin-top:14px;">历史步骤</h2>
-<div class="action-list" id="history-steps"></div>
-</div>
-
-<div class="panel">
-<h2>工站管理</h2>
-<div class="form-group">
-<label>当前工站</label>
-<select id="station-list" onchange="switchStation()"></select>
-<button class="btn" onclick="addStation()">新增工站</button>
-<button class="btn del" onclick="delStation()">删除工站</button>
-</div>
-<h3 style="font-size:16px;margin:10px 0;">工站步骤</h3>
-<div class="canvas" id="step-canvas">
-<div class="empty">拖拽左侧步骤到此处</div>
-</div>
-<button class="btn gray" onclick="clearSteps()">清空步骤</button>
-<button class="btn" onclick="saveRoute()">保存工艺路线</button>
+<!-- ====================== 主页（清爽导航卡片） ====================== -->
+<div id="page-home" class="page active">
+  <div class="home-title">工艺流程管理中心</div>
+  <div class="card-box">
+    <div class="card">
+      <h3>工艺流程编辑</h3>
+      <p>组装、测试、包装等工序流程设计</p >
+      <button class="btn" onclick="go('process')">进入编辑</button>
+    </div>
+    <div class="card">
+      <h3>设备工装管理</h3>
+      <p>设备、工装、工具单独配置</p >
+      <button class="btn" onclick="go('device')">进入编辑</button>
+    </div>
+    <div class="card">
+      <h3>图片上传管理</h3>
+      <p>上传工序图片，本地永久保存</p >
+      <button class="btn" onclick="go('image')">进入管理</button>
+    </div>
+    <div class="card">
+      <h3>我的设计</h3>
+      <p>查看、加载、删除已保存工艺</p >
+      <button class="btn" onclick="go('mydesign')">进入查看</button>
+    </div>
+    <div class="card">
+      <h3>合并编写</h3>
+      <p>多条工艺流程合并为新方案</p >
+      <button class="btn" onclick="go('merge')">进入合并</button>
+    </div>
+    <div class="card">
+      <h3>保存当前方案</h3>
+      <p>将当前编辑内容保存到我的设计</p >
+      <button class="btn" onclick="saveCurrentRoute()">保存</button>
+    </div>
+  </div>
 </div>
 
-<div class="panel">
-<h2>工站属性</h2>
-<div class="tab">
-<div class="active" onclick="tab(1)">基本信息</div>
-<div onclick="tab(2)">工时设备</div>
-<div onclick="tab(3)">人员版本</div>
-</div>
-<div class="tab-pane active" id="t1">
-<div class="form-group"><label>工站名称</label><input id="s-name"></div>
-<div class="form-group"><label>工序编号</label><input id="s-code"></div>
-<div class="form-group"><label>作业人数</label><input type="number" id="s-num" value="1"></div>
-</div>
-<div class="tab-pane" id="t2">
-<div class="form-group"><label>标准工时(秒)</label><input type="number" id="s-time" value="30"></div>
-<div class="form-group"><label>工装设备</label><textarea id="s-tool" rows="2"></textarea></div>
-<div class="form-group"><label>作业要点</label><textarea id="s-note" rows="2"></textarea></div>
-</div>
-<div class="tab-pane" id="t3">
-<div class="form-group"><label>编制人</label><input id="s-user"></div>
-<div class="form-group"><label>版本</label><input id="s-ver" value="V1.0"></div>
-<div class="form-group"><label>日期</label><input type="date" id="s-date"></div>
-</div>
-<button class="btn" onclick="saveStationAttr()" style="width:100%;margin-top:10px;">保存属性</button>
-</div>
-</div>
-</div>
-
-<!-- 我的设计 -->
-<div id="page-mydesign" class="page" style="display:none;">
-<div class="panel">
-<h2>我的工艺路线</h2>
-<div id="my-list"></div>
-</div>
+<!-- ====================== 工艺流程编辑页 ====================== -->
+<div id="page-process" class="page">
+  <div class="panel">
+    <h2>工艺流程编辑</h2>
+    <div class="form-group">
+      <label>产品名称</label>
+      <input id="p-name" placeholder="例如：蓝牙耳机">
+    </div>
+    <div class="form-group">
+      <label>产品代码</label>
+      <input id="p-code" placeholder="例如：PROD-2026-001">
+    </div>
+    <div class="form-group">
+      <label>工艺流程（可输入：组装-测试-包装-老化等）</label>
+      <textarea id="p-flow" rows="6" placeholder="每行一个工序，例如：
+组装
+上电测试
+功能检测
+包装
+入库"></textarea>
+    </div>
+    <button class="btn gray" onclick="go('home')">返回首页</button>
+    <button class="btn success" onclick="saveProcess()">保存工艺流程</button>
+  </div>
 </div>
 
-<!-- 工艺库 -->
-<div id="page-library" class="page" style="display:none;">
-<div class="panel">
-<h2>公共工艺库</h2>
-<input id="search-lib" placeholder="搜索产品名称/代码" oninput="searchLib()">
-<div id="lib-list"></div>
-</div>
+<!-- ====================== 设备工装编辑页 ====================== -->
+<div id="page-device" class="page">
+  <div class="panel">
+    <h2>设备 / 工装 / 工具管理</h2>
+    <div class="form-group">
+      <label>工装设备清单（每行一个）</label>
+      <textarea id="p-tool" rows="8" placeholder="电动起子
+扭力扳手
+静电环
+测试治具
+热熔胶枪"></textarea>
+    </div>
+    <div class="form-group">
+      <label>工具类型</label>
+      <select id="p-tool-type">
+        <option>组装类</option>
+        <option>测试类</option>
+        <option>包装类</option>
+        <option>通用类</option>
+      </select>
+    </div>
+    <button class="btn gray" onclick="go('home')">返回首页</button>
+    <button class="btn success" onclick="saveTool()">保存设备信息</button>
+  </div>
 </div>
 
-<!-- 后台管理 -->
-<div id="page-admin" class="page" style="display:none;">
-<div class="panel">
-<h2>工艺动作库管理</h2>
-<div class="form-row">
-<input id="new-action" placeholder="新动作名称">
-<button class="btn" onclick="addAction()">添加</button>
+<!-- ====================== 图片管理页 ====================== -->
+<div id="page-image" class="page">
+  <div class="panel">
+    <h2>图片上传与管理</h2>
+    <div class="form-group">
+      <label>选择图片上传</label>
+      <input type="file" id="imgUpload" accept="image/*" multiple onchange="uploadImg()">
+    </div>
+    <div id="imgArea" class="form-group"></div>
+    <button class="btn gray" onclick="go('home')">返回首页</button>
+    <button class="btn success" onclick="alert('图片已自动保存本地')">确认保存</button>
+  </div>
 </div>
-<div id="admin-action-list"></div>
+
+<!-- ====================== 我的设计 ====================== -->
+<div id="page-mydesign" class="page">
+  <div class="panel">
+    <h2>我的工艺设计</h2>
+    <div id="myList"></div>
+    <button class="btn gray" onclick="go('home')">返回首页</button>
+  </div>
 </div>
+
+<!-- ====================== 合并编写 ====================== -->
+<div id="page-merge" class="page">
+  <div class="panel">
+    <h2>工艺路线合并</h2>
+    <div id="mergeCheckArea"></div>
+    <div class="form-group" style="margin-top:20px;">
+      <label>合并后新产品名称</label>
+      <input id="mergeName">
+    </div>
+    <div class="form-group">
+      <label>合并后新产品代码</label>
+      <input id="mergeCode">
+    </div>
+    <button class="btn gray" onclick="go('home')">返回</button>
+    <button class="btn success" onclick="doMerge()">执行合并并保存</button>
+  </div>
+</div>
+
+<!-- ====================== 工艺库 ====================== -->
+<div id="page-library" class="page">
+  <div class="panel">
+    <h2>公共工艺库</h2>
+    <div id="libArea"></div>
+    <button class="btn gray" onclick="go('home')">返回首页</button>
+  </div>
 </div>
 
 </div>
 
 <script>
-let currentTab = 1;
-let currentStation = null;
-let dragName = '';
-let data = JSON.parse(localStorage.getItem('process_data')) || {
-product:{name:'',code:''},
-stations:[],
-routes:[],
-actions:["自检","插线","理线","扣合","锁付","贴付","打胶","外观检查","包装"]
+const KEY = "process_data_v3";
+let data = JSON.parse(localStorage.getItem(KEY)) || {
+  product: { name: "", code: "" },
+  flow: "",
+  tool: "",
+  toolType: "组装类",
+  imgs: [],
+  routes: []
 };
 
-function tab(n){
-currentTab = n;
-document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
-document.querySelectorAll('.tab div').forEach(d=>d.classList.remove('active'));
-document.getElementById('t'+n).classList.add('active');
-document.querySelector('.tab div:nth-child('+n+')').classList.add('active');
+// 页面跳转
+function go(page) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.getElementById("page-" + page).classList.add("active");
+  document.querySelectorAll(".nav a").forEach(a => a.classList.remove("active"));
+  if (event) event.target.classList.add("active");
+  if (page === "mydesign") renderMyList();
+  if (page === "merge") renderMergeCheck();
+  if (page === "library") renderLib();
 }
 
-function go(page){
-document.querySelectorAll('.page').forEach(p=>p.style.display='none');
-document.getElementById('page-'+page).style.display='block';
-document.querySelectorAll('.nav a').forEach(a=>a.classList.remove('active'));
-event.target.classList.add('active');
-if(page==='mydesign')renderMyList();
-if(page==='library')renderLib();
-if(page==='admin')renderAdmin();
+// 保存工艺流程
+function saveProcess() {
+  data.product.name = document.getElementById("p-name").value;
+  data.product.code = document.getElementById("p-code").value;
+  data.flow = document.getElementById("p-flow").value;
+  save();
+  alert("工艺流程已保存");
+  go("home");
 }
 
-// 工站
-function addStation(){
-let station = {
-id:'S'+Date.now(), name:'', code:'', num:1, time:30, tool:'', note:'',
-user:'', ver:'V1.0', date:new Date().toISOString().split('T')[0], steps:[]
-};
-data.stations.push(station);
-currentStation = station;
-renderStationList();
-switchStation();
-save();
+// 保存工装设备
+function saveTool() {
+  data.tool = document.getElementById("p-tool").value;
+  data.toolType = document.getElementById("p-tool-type").value;
+  save();
+  alert("设备工装已保存");
+  go("home");
 }
 
-function renderStationList(){
-let sel = document.getElementById('station-list');
-sel.innerHTML = '<option value="">--选择工站--</option>';
-data.stations.forEach(s=>{
-let opt = document.createElement('option');
-opt.value = s.id;
-opt.textContent = s.name || '未命工站';
-sel.appendChild(opt);
-});
+// 图片上传
+function uploadImg() {
+  let files = document.getElementById("imgUpload").files;
+  if (!files.length) return;
+  Array.from(files).forEach(file => {
+    let reader = new FileReader();
+    reader.onload = e => {
+      data.imgs.push({
+        id: Date.now(),
+        base64: e.target.result
+      });
+      renderImgs();
+      save();
+    };
+    reader.readAsDataURL(file);
+  });
 }
 
-function switchStation(){
-let id = document.getElementById('station-list').value;
-currentStation = data.stations.find(s=>s.id===id)||null;
-if(!currentStation){document.getElementById('step-canvas').innerHTML='<div class="empty">拖拽左侧步骤到此处</div>';return;}
-document.getElementById('s-name').value=currentStation.name||'';
-document.getElementById('s-code').value=currentStation.code||'';
-document.getElementById('s-num').value=currentStation.num||1;
-document.getElementById('s-time').value=currentStation.time||30;
-document.getElementById('s-tool').value=currentStation.tool||'';
-document.getElementById('s-note').value=currentStation.note||'';
-document.getElementById('s-user').value=currentStation.user||'';
-document.getElementById('s-ver').value=currentStation.ver||'V1.0';
-document.getElementById('s-date').value=currentStation.date||new Date().toISOString().split('T')[0];
-renderSteps();
+// 显示图片
+function renderImgs() {
+  let area = document.getElementById("imgArea");
+  area.innerHTML = "";
+  data.imgs.forEach((img, i) => {
+    let div = document.createElement("div");
+    div.className = "img-item";
+    div.innerHTML = `< img src="${img.base64}"><button class="del-img" onclick="delImg(${i})">×</button>`;
+    area.appendChild(div);
+  });
 }
 
-function saveStationAttr(){
-if(!currentStation)return;
-currentStation.name=document.getElementById('s-name').value;
-currentStation.code=document.getElementById('s-code').value;
-currentStation.num=document.getElementById('s-num').value;
-currentStation.time=document.getElementById('s-time').value;
-currentStation.tool=document.getElementById('s-tool').value;
-currentStation.note=document.getElementById('s-note').value;
-currentStation.user=document.getElementById('s-user').value;
-currentStation.ver=document.getElementById('s-ver').value;
-currentStation.date=document.getElementById('s-date').value;
-renderStationList();
-save();
-alert('已保存工站属性');
+// 删除图片
+function delImg(i) {
+  data.imgs.splice(i, 1);
+  renderImgs();
+  save();
 }
 
-function delStation(){
-if(!currentStation)return;
-if(!confirm('删除该工站？'))return;
-data.stations = data.stations.filter(s=>s.id!==currentStation.id);
-currentStation = null;
-renderStationList();
-switchStation();
-save();
+// 保存当前整条工艺到我的设计
+function saveCurrentRoute() {
+  if (!data.product.name) {
+    alert("请先填写产品名称");
+    return;
+  }
+  let route = JSON.parse(JSON.stringify(data));
+  route.time = new Date().toLocaleString();
+  route.id = "R" + Date.now();
+  data.routes.push(route);
+  save();
+  alert("已保存到我的设计");
 }
 
-// 拖拽
-document.querySelectorAll('.action-item').forEach(i=>{
-i.addEventListener('dragstart',e=>{dragName=i.dataset.name;});
-});
-let canvas = document.getElementById('step-canvas');
-canvas.addEventListener('dragover',e=>e.preventDefault());
-canvas.addEventListener('drop',e=>{
-e.preventDefault();
-if(!currentStation)return;
-if(!currentStation.steps.includes(dragName)){
-currentStation.steps.push(dragName);
-renderSteps();
-save();
-}
-});
-
-function renderSteps(){
-if(!currentStation){canvas.innerHTML='<div class="empty">拖拽左侧步骤到此处</div>';return;}
-if(currentStation.steps.length===0){canvas.innerHTML='<div class="empty">暂无步骤</div>';return;}
-canvas.innerHTML='';
-currentStation.steps.forEach((s,i)=>{
-let div = document.createElement('div');
-div.className='step-item';
-div.innerHTML=`<span>${s}</span><button onclick="delStep(${i})">×</button>`;
-canvas.appendChild(div);
-});
-renderHistory();
+// 我的设计列表
+function renderMyList() {
+  let area = document.getElementById("myList");
+  if (!data.routes.length) {
+    area.innerHTML = "<div class='empty'>暂无设计</div>";
+    return;
+  }
+  area.innerHTML = "";
+  data.routes.forEach((r, i) => {
+    let div = document.createElement("div");
+    div.className = "list-item";
+    div.innerHTML = `
+      ${r.product.name}（${r.product.code}）
+      <div>
+        <button class="btn" onclick="loadRoute(${i})">加载</button>
+        <button class="btn del" onclick="delRoute(${i})">删除</button>
+      </div>`;
+    area.appendChild(div);
+  });
 }
 
-function delStep(i){
-currentStation.steps.splice(i,1);
-renderSteps();
-save();
+// 加载方案
+function loadRoute(i) {
+  let r = data.routes[i];
+  data = JSON.parse(JSON.stringify(r));
+  save();
+  document.getElementById("p-name").value = data.product.name;
+  document.getElementById("p-code").value = data.product.code;
+  document.getElementById("p-flow").value = data.flow;
+  document.getElementById("p-tool").value = data.tool;
+  document.getElementById("p-tool-type").value = data.toolType;
+  renderImgs();
+  alert("已加载该工艺方案");
+  go("home");
 }
 
-function clearSteps(){
-if(!currentStation)return;
-if(!confirm('清空该工站所有步骤？'))return;
-currentStation.steps=[];
-renderSteps();
-save();
+// 删除方案
+function delRoute(i) {
+  if (!confirm("确定删除？")) return;
+  data.routes.splice(i, 1);
+  save();
+  renderMyList();
 }
 
-// 历史步骤
-function renderHistory(){
-let map = {};
-data.stations.forEach(s=>{s.steps.forEach(t=>map[t]=1);});
-let list = document.getElementById('history-steps');
-list.innerHTML='';
-Object.keys(map).forEach(k=>{
-let d=document.createElement('div');
-d.className='action-item';
-d.draggable=true;
-d.dataset.name=k;
-d.textContent=k;
-d.addEventListener('dragstart',e=>{dragName=k;});
-list.appendChild(d);
-});
+// 合并选择列表
+function renderMergeCheck() {
+  let area = document.getElementById("mergeCheckArea");
+  if (!data.routes.length) {
+    area.innerHTML = "<div class='empty'>暂无工艺可合并</div>";
+    return;
+  }
+  area.innerHTML = "";
+  data.routes.forEach((r, i) => {
+    let div = document.createElement("div");
+    div.className = "list-item";
+    div.innerHTML = `<label><input type="checkbox" class="mc" data-i="${i}"> ${r.product.name}</label>`;
+    area.appendChild(div);
+  });
 }
 
-// 产品
-function saveProduct(){
-data.product.name=document.getElementById('product-name').value;
-data.product.code=document.getElementById('product-code').value;
-save();
-alert('产品信息已保存');
-}
-
-// 保存工艺路线
-function saveRoute(){
-if(!data.product.name||!data.product.code){alert('请填写产品信息');return;}
-let route = {
-id:'R'+Date.now(),
-product:data.product,
-stations:JSON.parse(JSON.stringify(data.stations)),
-time:new Date().toLocaleString()
-};
-data.routes.push(route);
-save();
-alert('工艺路线已保存至我的设计');
-}
-
-// 我的设计
-function renderMyList(){
-let box = document.getElementById('my-list');
-if(data.routes.length===0){box.innerHTML='<div class="empty">暂无设计</div>';return;}
-box.innerHTML='';
-data.routes.forEach((r,i)=>{
-let d=document.createElement('div');
-d.className='list-item';
-d.innerHTML=`${r.product.name}（${r.product.code}）<div>
-<button class="btn gray" onclick="loadRoute(${i})">加载</button>
-<button class="btn del" onclick="delRoute(${i})">删除</button>
-</div>`;
-box.appendChild(d);
-});
-}
-
-function loadRoute(i){
-let r = data.routes[i];
-data.product = r.product;
-data.stations = JSON.parse(JSON.stringify(r.stations));
-document.getElementById('product-name').value=data.product.name;
-document.getElementById('product-code').value=data.product.code;
-renderStationList();
-go('home');
-switchStation();
-save();
-alert('已加载该工艺路线');
-}
-
-function delRoute(i){
-if(!confirm('删除该工艺路线？'))return;
-data.routes.splice(i,1);
-renderMyList();
-save();
+// 执行合并
+function doMerge() {
+  let cs = document.querySelectorAll(".mc:checked");
+  if (cs.length < 2) {
+    alert("至少选择2条工艺");
+    return;
+  }
+  let name = document.getElementById("mergeName").value;
+  let code = document.getElementById("mergeCode").value;
+  if (!name || !code) {
+    alert("请填写名称和代码");
+    return;
+  }
+  let mergedFlow = "";
+  let mergedTool = "";
+  cs.forEach(c => {
+    let i = parseInt(c.dataset.i);
+    mergedFlow += data.routes[i].flow + "\n";
+    mergedTool += data.routes[i].tool + "\n";
+  });
+  let newRoute = JSON.parse(JSON.stringify(data));
+  newRoute.product.name = name;
+  newRoute.product.code = code;
+  newRoute.flow = mergedFlow;
+  newRoute.tool = mergedTool;
+  newRoute.time = new Date().toLocaleString();
+  newRoute.id = "MERGE" + Date.now();
+  data.routes.push(newRoute);
+  save();
+  alert("合并完成，已保存到我的设计");
+  go("mydesign");
 }
 
 // 工艺库
-function renderLib(){
-let box = document.getElementById('lib-list');
-box.innerHTML='';
-data.routes.forEach(r=>{
-let d=document.createElement('div');
-d.className='list-item';
-d.textContent=r.product.name+' · '+r.product.code;
-box.appendChild(d);
-});
-}
-function searchLib(){
-let kw=document.getElementById('search-lib').value.toLowerCase();
-let box=document.getElementById('lib-list');
-box.innerHTML='';
-data.routes.filter(r=>r.product.name.toLowerCase().includes(kw)||r.product.code.toLowerCase().includes(kw)).forEach(r=>{
-let d=document.createElement('div');d.className='list-item';d.textContent=r.product.name+' · '+r.product.code;box.appendChild(d);
-});
+function renderLib() {
+  let area = document.getElementById("libArea");
+  area.innerHTML = "";
+  data.routes.forEach(r => {
+    let div = document.createElement("div");
+    div.className = "list-item";
+    div.innerText = r.product.name + " · " + r.product.code;
+    area.appendChild(div);
+  });
 }
 
-// 后台动作管理
-function renderAdmin(){
-let box=document.getElementById('admin-action-list');
-box.innerHTML='';
-data.actions.forEach((a,i)=>{
-let d=document.createElement('div');
-d.className='list-item';
-d.innerHTML=`${a}<button class="btn del" onclick="data.actions.splice(${i},1);renderAdmin();save()">删</button>`;
-box.appendChild(d);
-});
-}
-function addAction(){
-let v=document.getElementById('new-action').value.trim();
-if(!v)return;
-if(!data.actions.includes(v))data.actions.push(v);
-document.getElementById('new-action').value='';
-renderAdmin();
-save();
-}
-
-// 保存本地
-function save(){
-localStorage.setItem('process_data',JSON.stringify(data));
+// 本地保存
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(data));
 }
 
 // 初始化
-window.onload=function(){
-renderStationList();
-renderHistory();
-}
+window.onload = function () {
+  renderImgs();
+  go("home");
+};
 </script>
 </body>
 </html>
