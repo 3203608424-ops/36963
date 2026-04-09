@@ -1,244 +1,576 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工艺流程管理系统</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:"Microsoft YaHei",sans-serif;}
-body{background:#f7f8fa;color:#333;}
-.top{background:#2a4365;color:white;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;}
-.top h1{font-size:22px;font-weight:500;}
-.nav{display:flex;gap:20px;}
-.nav a{color:white;text-decoration:none;padding:8px 12px;border-radius:6px;cursor:pointer;}
-.nav a.active{background:#4299e1;}
-.container{max-width:1200px;margin:30px auto;padding:0 20px;}
-.page{display:none;}
-.page.active{display:block;}
-.panel{background:white;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.05);padding:24px;margin-bottom:20px;}
-.panel h2{font-size:20px;margin-bottom:20px;color:#2d3748;border-left:4px solid #4299e1;padding-left:12px;}
-.form-group{margin-bottom:16px;}
-label{display:block;margin-bottom:8px;font-size:14px;color:#4a5568;}
-input,select,textarea{width:100%;padding:10px 12px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.btn{padding:10px 18px;background:#4299e1;color:white;border:none;border-radius:8px;cursor:pointer;margin-right:10px;margin-bottom:10px;}
-.btn.del{background:#f56565;}
-.btn.gray{background:#718096;}
-.btn.success{background:#48bb78;}
-.list-item{padding:12px;border-bottom:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;}
-.empty{color:#a0aec0;text-align:center;padding:40px 0;}
-.img-item{display:inline-block;margin:10px;position:relative;}
-.img-item img{max-width:140px;max-height:140px;border-radius:8px;}
-.del-img{position:absolute;top:-8px;right:-8px;background:#f56565;color:white;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;}
-.step-item{background:white;border:1px solid #48bb78;padding:12px;border-radius:8px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
-.folder{background:#edf2f7;padding:10px 14px;border-radius:8px;margin-bottom:10px;font-weight:bold;cursor:pointer;}
-.route-item{padding:8px 12px;background:white;border-radius:6px;margin:6px 0 6px 20px;cursor:move;}
-.rename-input{padding:6px;border:1px solid #ccc;border-radius:6px;width:200px;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工艺路线管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            color: #333;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        h1 {
+            font-size: 24px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h2 {
+            font-size: 20px;
+            margin-top: 20px;
+        }
+        h3 {
+            font-size: 18px;
+            color: #3498db;
+        }
+        h4 {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .left-panel, .right-panel {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+        }
+        .main-panel {
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .action-library {
+            margin-bottom: 20px;
+        }
+        .action-item {
+            background: #fff;
+            border: 1px solid #3498db;
+            color: #3498db;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            cursor: move;
+            transition: all 0.2s;
+        }
+        .action-item:hover {
+            background: #e3f2fd;
+            transform: translateX(2px);
+        }
+        .canvas-area {
+            min-height: 300px;
+            border: 2px dashed #ced4da;
+            border-radius: 6px;
+            padding: 20px;
+            position: relative;
+        }
+        .canvas-empty {
+            color: #adb5bd;
+            text-align: center;
+            padding-top: 80px;
+        }
+        .step-item {
+            background: #fff;
+            border: 1px solid #28a745;
+            color: #28a745;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .step-item .del-btn {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #495057;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52,152,219,0.2);
+        }
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 8px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn-primary {
+            background: #3498db;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-default {
+            background: #6c757d;
+            color: #fff;
+        }
+        .btn-success {
+            background: #28a745;
+            color: #fff;
+        }
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 15px;
+        }
+        .tab-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            color: #495057;
+        }
+        .tab-item.active {
+            border-bottom-color: #3498db;
+            color: #3498db;
+            font-weight: 500;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .station-select {
+            margin-bottom: 20px;
+        }
+        .history-steps {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e9ecef;
+        }
+        .empty-tip {
+            color: #6c757d;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+        .section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+        }
+        .folder {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .folder-content {
+            display: none;
+            padding: 10px 15px;
+            margin-left: 20px;
+            border-left: 2px dashed #ccc;
+        }
+        .route-item {
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+        .excel-sheet {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .sheet-header {
+            background: #f1f3f5;
+            padding: 8px 12px;
+            font-weight: bold;
+            border-bottom: 1px solid #ddd;
+        }
+        .sheet-body {
+            padding: 12px;
+        }
+        .sheet-body textarea {
+            width: 100%;
+            height: 150px;
+            font-family: monospace;
+        }
+        .merge-check {
+            margin-right: 8px;
+        }
+        .img-preview {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .img-preview img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        @media (max-width: 992px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>工艺路线管理系统</h1>
+        <div style="margin-bottom:20px;">
+            <button class="btn btn-primary" onclick="showPage('edit')">工艺流程编辑</button>
+            <button class="btn btn-default" onclick="showPage('mydesign')">我的设计</button>
+        </div>
 
-<div class="top">
-    <h1>工艺流程管理系统</h1>
-    <div class="nav">
-        <a class="active" onclick="go('home')">首页</a >
-        <a onclick="go('process')">工艺流程编辑</a >
-        <a onclick="go('device')">设备工装管理</a >
-        <a onclick="go('mydesign')">我的设计</a >
+        <div id="page-edit" class="page-section">
+            <div class="form-group" style="max-width: 800px;">
+                <h3>工艺路线创建</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <div class="form-group">
+                        <label for="productName">产品名称</label>
+                        <input type="text" id="productName" placeholder="例如：无线蓝牙耳机">
+                    </div>
+                    <div class="form-group">
+                        <label for="productCode">产品代码</label>
+                        <input type="text" id="productCode" placeholder="例如：BT-2024-001">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="saveProductInfo()">保存产品信息</button>
+            </div>
+
+            <div class="grid-layout">
+                <div class="left-panel">
+                    <h3>工艺动作库</h3>
+                    <div class="action-library" id="actionLibrary">
+                        <div class="action-item" draggable="true" data-name="自检">自检<br>自主检查作业质量</div>
+                        <div class="action-item" draggable="true" data-name="插线">插线<br>连接插头和接口</div>
+                        <div class="action-item" draggable="true" data-name="理线">理线<br>整理和布置线缆</div>
+                        <div class="action-item" draggable="true" data-name="扣合">扣合<br>组装和扣合零件</div>
+                        <div class="action-item" draggable="true" data-name="锁付">锁付<br>使用螺丝固定组件</div>
+                        <div class="action-item" draggable="true" data-name="贴付">贴付<br>贴标签、贴片等</div>
+                        <div class="action-item" draggable="true" data-name="打胶">打胶<br>点胶、涂胶作业</div>
+                        <div class="action-item" draggable="true" data-name="外观">外观<br>外观检查与处理</div>
+                        <div class="action-item" draggable="true" data-name="包装">包装<br>产品包装与标识</div>
+                    </div>
+                    <h3 class="history-steps">历史步骤</h3>
+                    <div id="historySteps" class="empty-tip">暂无历史步骤记录</div>
+                </div>
+
+                <div class="main-panel">
+                    <div class="station-select">
+                        <h3>工站管理</h3>
+                        <div class="form-group" style="max-width: 400px;">
+                            <label for="stationSelect">选择工站</label>
+                            <select id="stationSelect" onchange="switchStation()">
+                                <option value="">-- 请选择/新增工站 --</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="addNewStation()">新增工站</button>
+                            <button class="btn btn-danger" onclick="deleteCurrentStation()">删除当前工站</button>
+                        </div>
+                    </div>
+                    <h4>当前工站: <span id="currentStationName" style="color: #dc3545;">未选择</span></h4>
+                    <div class="canvas-area" id="stepCanvas">
+                        <div class="canvas-empty" id="canvasEmpty">选择一个工站，然后从左侧拖拽步骤到画布</div>
+                    </div>
+                    <div style="margin-top: 15px;">
+                        <button class="btn btn-default" onclick="clearCurrentStationSteps()">清空当前工站步骤</button>
+                        <button class="btn btn-primary" onclick="saveCurrentToMyDesign()">保存到我的设计</button>
+                    </div>
+                </div>
+
+                <div class="right-panel">
+                    <h3>工站属性编辑</h3>
+                    <div class="tab-nav">
+                        <div class="tab-item active" data-tab="baseInfo">基本信息</div>
+                        <div class="tab-item" data-tab="versionInfo">版本信息</div>
+                        <div class="tab-item" data-tab="personInfo">人员信息</div>
+                        <div class="tab-item" data-tab="deviceInfo">设备与标识</div>
+                    </div>
+                    <div class="tab-content active" id="baseInfo">
+                        <div class="form-group">
+                            <label for="stationName">工站名称</label>
+                            <input type="text" id="stationName" placeholder="例如：主板组装工站">
+                        </div>
+                        <div class="form-group">
+                            <label for="processNo">工序编号</label>
+                            <input type="text" id="processNo" placeholder="例如：S001">
+                        </div>
+                        <div class="form-group">
+                            <label for="workNum">作业人数</label>
+                            <input type="number" id="workNum" value="1" min="1">
+                        </div>
+                    </div>
+                    <div class="tab-content" id="versionInfo">
+                        <div class="form-group">
+                            <label for="version">版本</label>
+                            <input type="text" id="version" value="V1.0" placeholder="例如：V1.0">
+                        </div>
+                        <div class="form-group">
+                            <label for="createDate">制定日期</label>
+                            <input type="date" id="createDate">
+                        </div>
+                        <div class="form-group">
+                            <label for="updateDate">修改日期</label>
+                            <input type="date" id="updateDate">
+                        </div>
+                    </div>
+                    <div class="tab-content" id="personInfo">
+                        <div class="form-group">
+                            <label for="compiler">编制人</label>
+                            <input type="text" id="compiler" placeholder="例如：张三">
+                        </div>
+                        <div class="form-group">
+                            <label for="signer">会签人</label>
+                            <input type="text" id="signer" placeholder="例如：李四, 王五">
+                        </div>
+                    </div>
+                    <div class="tab-content" id="deviceInfo">
+                        <div class="form-group">
+                            <label for="equipment">所需工装/设备</label>
+                            <textarea id="equipment" rows="3" placeholder="例如：电动起子, 扭力扳手"></textarea>
+                        </div>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="staticProtect" checked>
+                                <label for="staticProtect">静电防护</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="appearanceCheck" checked>
+                                <label for="appearanceCheck">外观检查</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="keyPost" checked>
+                                <label for="keyPost">重点岗位</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="functionTest">
+                                <label for="functionTest">功能测试</label>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top:15px;">
+                            <label>参考图片</label>
+                            <input type="file" id="imgUpload" accept="image/*" multiple onchange="previewImages()">
+                            <div class="img-preview" id="imgPreview"></div>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="saveStationAttr()">保存工站属性</button>
+                    <button class="btn btn-default" style="width: 100%;" onclick="resetStationAttr()">重置属性</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-mydesign" class="page-section" style="display:none;">
+            <h2>我的设计</h2>
+            <div class="form-group">
+                <button class="btn btn-primary" onclick="renderMyDesign()">刷新列表</button>
+                <button class="btn btn-success" onclick="startMerge()">开始合并选中项目</button>
+            </div>
+            <div id="myDesignList"></div>
+        </div>
     </div>
-</div>
-
-<div class="container">
-
-<!-- 首页 -->
-<div id="page-home" class="page active">
-    <div class="panel">
-        <h2>工艺流程管理中心</h2>
-        <button class="btn" onclick="go('process')">进入工艺流程编辑</button>
-        <button class="btn" onclick="go('device')">进入设备工装管理</button>
-        <button class="btn" onclick="go('mydesign')">查看我的设计</button>
-    </div>
-</div>
-
-<!-- 工艺流程编辑（内部带图片上传） -->
-<div id="page-process" class="page">
-    <div class="panel">
-        <h2>工艺流程编辑</h2>
-        <div class="form-group">
-            <label>产品型号</label>
-            <input id="p_model" placeholder="例如：YX-2025-A01">
-        </div>
-        <div class="form-group">
-            <label>工艺流程（组装-测试-包装...）</label>
-            <textarea id="p_flow" rows="6" placeholder="每行一个工序"></textarea>
-        </div>
-        <div class="form-group">
-            <label>工序图片上传</label>
-            <input type="file" id="img_upload" accept="image/*" multiple onchange="uploadImg()">
-            <div id="img_area"></div>
-        </div>
-        <button class="btn gray" onclick="go('home')">返回</button>
-        <button class="btn success" onclick="saveProcess()">保存当前方案到我的设计</button>
-    </div>
-</div>
-
-<!-- 设备工装编辑 -->
-<div id="page-device" class="page">
-    <div class="panel">
-        <h2>设备 / 工装 / 工具管理</h2>
-        <div class="form-group">
-            <label>产品型号</label>
-            <input id="d_model" placeholder="例如：YX-2025-A01">
-        </div>
-        <div class="form-group">
-            <label>设备工装清单</label>
-            <textarea id="d_tool" rows="6" placeholder="电动起子、测试治具..."></textarea>
-        </div>
-        <button class="btn gray" onclick="go('home')">返回</button>
-        <button class="btn success" onclick="saveDevice()">保存当前方案到我的设计</button>
-    </div>
-</div>
-
-<!-- 我的设计（可展开、拖拽、合并、重命名） -->
-<div id="page-mydesign" class="page">
-    <div class="panel">
-        <h2>我的设计（可拖拽合并）</h2>
-        <div id="merge_area" style="margin-bottom:20px;">
-            <button class="btn" onclick="startMerge()">勾选合并</button>
-            <button class="btn success" onclick="doMerge()">生成合并文件夹</button>
-        </div>
-        <div id="my_list"></div>
-    </div>
-</div>
-
-</div>
 
 <script>
-const STORAGE_KEY = "process_full_v5";
-let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+const STORAGE_KEY = 'process_route_full_v6';
+let systemData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+    product: { name: '', code: '' },
+    stations: [],
+    currentStationId: '',
     folders: [],
-    routes: []
+    routes: [],
+    imgs: []
 };
 
+let dragStepName = '';
 let mergeMode = false;
-let selectedMerge = [];
+let preImgs = [];
 
-// 页面切换
-function go(page) {
-    document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
-    document.getElementById("page-" + page).classList.add("active");
-    if (page === "mydesign") renderMyDesign();
+window.onload = function() {
+    initPage();
+    initDragEvent();
+    initTabEvent();
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('createDate').value = today;
+    document.getElementById('updateDate').value = today;
+};
+
+function showPage(page) {
+    document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+    document.getElementById('page-' + page).style.display = 'block';
+    if (page === 'mydesign') renderMyDesign();
 }
 
-// 保存工艺流程
-function saveProcess() {
-    let model = document.getElementById("p_model").value.trim();
-    let flow = document.getElementById("p_flow").value.trim();
-    if (!model) return alert("请填写产品型号");
-    let now = new Date().toLocaleString();
-    let folder = getFolderByModel(model);
-    data.routes.push({
-        id: "R" + Date.now(),
-        folderId: folder.id,
-        title: "工艺流程_" + model,
-        type: "process",
-        model: model,
-        flow: flow,
-        imgs: JSON.parse(JSON.stringify(imgs)),
-        time: now
-    });
-    saveAll();
-    alert("已保存：" + now);
-}
-
-// 保存设备工装
-function saveDevice() {
-    let model = document.getElementById("d_model").value.trim();
-    let tool = document.getElementById("d_tool").value.trim();
-    if (!model) return alert("请填写产品型号");
-    let now = new Date().toLocaleString();
-    let folder = getFolderByModel(model);
-    data.routes.push({
-        id: "R" + Date.now(),
-        folderId: folder.id,
-        title: "设备工装_" + model,
-        type: "device",
-        model: model,
-        tool: tool,
-        time: now
-    });
-    saveAll();
-    alert("已保存：" + now);
-}
-
-// 获取或创建文件夹
-function getFolderByModel(model) {
-    let f = data.folders.find(x => x.model === model);
-    if (!f) {
-        f = { id: "F" + Date.now(), model: model, name: model + "文件夹" };
-        data.folders.push(f);
+function previewImages() {
+    const files = document.getElementById('imgUpload').files;
+    const preview = document.getElementById('imgPreview');
+    preview.innerHTML = '';
+    preImgs = [];
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preImgs.push(e.target.result);
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
     }
-    return f;
 }
 
-// 图片上传
-let imgs = [];
-function uploadImg() {
-    let files = document.getElementById("img_upload").files;
-    if (!files.length) return;
-    Array.from(files).forEach(file => {
-        let rd = new FileReader();
-        rd.onload = e => imgs.push({ base64: e.target.result });
-        rd.readAsDataURL(file);
-    });
-    setTimeout(renderImgs, 100);
-}
-function renderImgs() {
-    let area = document.getElementById("img_area");
-    area.innerHTML = "";
-    imgs.forEach((it, i) => {
-        let el = document.createElement("div");
-        el.className = "img-item";
-        el.innerHTML = `< img src="${it.base64}"><button class="del-img" onclick="imgs.splice(${i},1);renderImgs()">×</button>`;
-        area.appendChild(el);
-    });
+function saveCurrentToMyDesign() {
+    const productName = document.getElementById('productName').value.trim() || '未命名产品';
+    const productCode = document.getElementById('productCode').value.trim() || '无型号';
+    const folderName = prompt('保存到文件夹（产品型号）：', productCode);
+    if (!folderName) return;
+
+    let folder = systemData.folders.find(f => f.name === folderName);
+    if (!folder) {
+        folder = { id: 'F' + Date.now(), name: folderName };
+        systemData.folders.push(folder);
+    }
+
+    const route = {
+        id: 'R' + Date.now(),
+        folderId: folder.id,
+        productName,
+        productCode,
+        stations: JSON.parse(JSON.stringify(systemData.stations)),
+        time: new Date().toLocaleString(),
+        imgs: [...preImgs]
+    };
+
+    systemData.routes.push(route);
+    saveAll();
+    alert('已保存到文件夹：' + folderName + '\n时间：' + route.time);
 }
 
-// 我的设计渲染（可展开）
 function renderMyDesign() {
-    let box = document.getElementById("my_list");
-    box.innerHTML = "";
-    data.folders.forEach(folder => {
-        let routes = data.routes.filter(r => r.folderId === folder.id);
-        let div = document.createElement("div");
-        div.innerHTML = `
-            <div class="folder" onclick="toggleFolder('${folder.id}')">
-                ${folder.name} 
-                <button class="btn gray" style="padding:4px 8px;margin-left:10px;" 
-                    onclick="event.stopPropagation();renameFolder('${folder.id}')">重命名</button>
-            </div>
-            <div id="f_${folder.id}" style="display:none;">
-                ${routes.map(r => `
-                <div class="route-item" draggable="${mergeMode}" data-id="${r.id}">
-                    ${mergeMode ? '<input type="checkbox" class="merge_cb" data-id="'+r.id+'">' : ''}
-                    ${r.title} · ${r.time}
-                </div>`).join('')}
-            </div>
+    const list = document.getElementById('myDesignList');
+    list.innerHTML = '';
+
+    systemData.folders.forEach(folder => {
+        const routes = systemData.routes.filter(r => r.folderId === folder.id);
+        const folderEl = document.createElement('div');
+        folderEl.className = 'folder';
+        folderEl.innerHTML = `
+            <span onclick="toggleFolder('${folder.id}')">📁 ${folder.name}</span>
+            <button class="btn btn-default" onclick="renameFolder('${folder.id}')">重命名</button>
         `;
-        box.appendChild(div);
+        list.appendChild(folderEl);
+
+        const content = document.createElement('div');
+        content.className = 'folder-content';
+        content.id = 'fc_' + folder.id;
+
+        routes.forEach(route => {
+            const item = document.createElement('div');
+            item.className = 'route-item';
+            item.innerHTML = `
+                ${mergeMode ? '<input type="checkbox" class="merge-item" data-id="'+route.id+'">' : ''}
+                ${route.productName}（${route.productCode}）· ${route.time}
+            `;
+            item.onclick = function() { if (!mergeMode) showRouteDetail(route); };
+            content.appendChild(item);
+        });
+
+        const merges = systemData.routes.filter(r => r.isMerge && r.folderId === folder.id);
+        merges.forEach(merge => {
+            const item = document.createElement('div');
+            item.className = 'route-item';
+            item.style.borderLeft = '3px solid #28a745';
+            item.innerText = '✅ 合并项目：' + merge.productName;
+            item.onclick = () => showMergeSheet(merge);
+            content.appendChild(item);
+        });
+
+        list.appendChild(content);
     });
 }
 
-// 展开/收起文件夹
 function toggleFolder(fid) {
-    let el = document.getElementById("f_" + fid);
-    el.style.display = el.style.display === "none" ? "block" : "none";
+    const el = document.getElementById('fc_' + fid);
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
-// 重命名文件夹
 function renameFolder(fid) {
-    let f = data.folders.find(x => x.id === fid);
-    let newName = prompt("新名称", f.name);
+    const f = systemData.folders.find(x => x.id === fid);
+    const newName = prompt('新文件夹名：', f.name);
     if (newName) {
         f.name = newName;
         saveAll();
@@ -246,44 +578,333 @@ function renameFolder(fid) {
     }
 }
 
-// 合并模式
+function showRouteDetail(route) {
+    alert('产品：' + route.productName + '\n型号：' + route.productCode + '\n工站数量：' + route.stations.length);
+}
+
 function startMerge() {
     mergeMode = true;
-    selectedMerge = [];
     renderMyDesign();
+    setTimeout(() => {
+        if (confirm('勾选后确定合并？')) doMerge();
+    }, 1000);
 }
 
-// 执行合并
 function doMerge() {
-    let cbs = document.querySelectorAll(".merge_cb:checked");
-    if (cbs.length < 2) return alert("至少选2条");
-    let ids = Array.from(cbs).map(c => c.dataset.id);
-    let items = data.routes.filter(r => ids.includes(r.id));
-    let model = items[0].model;
-    let now = new Date().toLocaleString();
-    let folder = getFolderByModel(model + "_合并");
-    data.routes.push({
-        id: "R" + Date.now(),
-        folderId: folder.id,
-        title: "合并工艺_" + model,
-        type: "merged",
-        model: model + "_合并",
-        mergedItems: items,
-        time: now
+    const checks = document.querySelectorAll('.merge-item:checked');
+    if (checks.length < 2) {
+        alert('至少选择2个项目合并');
+        mergeMode = false;
+        renderMyDesign();
+        return;
+    }
+
+    const ids = Array.from(checks).map(c => c.dataset.id);
+    const items = systemData.routes.filter(r => ids.includes(r.id));
+
+    let flowLines = [];
+    let deviceLines = [];
+    items.forEach(it => {
+        it.stations.forEach(s => {
+            flowLines.push(`【${s.name}】` + s.steps.join(' → '));
+            deviceLines.push(`【${s.name}】` + s.equipment);
+        });
     });
-    mergeMode = false;
+
+    const mergeName = prompt('合并后名称：', '合并工艺_' + items[0].productCode);
+    if (!mergeName) return;
+
+    const mergeRoute = {
+        id: 'M' + Date.now(),
+        folderId: items[0].folderId,
+        isMerge: true,
+        productName: mergeName,
+        productCode: items[0].productCode + '_合并',
+        flowText: flowLines.join('\n'),
+        deviceText: deviceLines.join('\n'),
+        time: new Date().toLocaleString()
+    };
+
+    systemData.routes.push(mergeRoute);
     saveAll();
+    mergeMode = false;
     renderMyDesign();
-    alert("合并完成，已生成新文件夹");
+    alert('合并完成！已生成双表结构');
 }
 
-// 保存全部
+function showMergeSheet(merge) {
+    const div = document.createElement('div');
+    div.innerHTML = `
+        <h3>${merge.productName}</h3>
+        <div class="excel-sheet">
+            <div class="sheet-header">表1：工艺流程总表</div>
+            <div class="sheet-body">
+                <textarea id="merge_flow_${merge.id}">${merge.flowText}</textarea>
+            </div>
+        </div>
+        <div class="excel-sheet">
+            <div class="sheet-header">表2：设备工装总表</div>
+            <div class="sheet-body">
+                <textarea id="merge_dev_${merge.id}">${merge.deviceText}</textarea>
+            </div>
+        </div>
+        <button class="btn btn-primary" onclick="saveMergeEdit('${merge.id}')">保存修改</button>
+    `;
+    document.getElementById('myDesignList').appendChild(div);
+}
+
+function saveMergeEdit(mid) {
+    const m = systemData.routes.find(x => x.id === mid);
+    if (!m) return;
+    m.flowText = document.getElementById('merge_flow_' + mid).value;
+    m.deviceText = document.getElementById('merge_dev_' + mid).value;
+    saveAll();
+    alert('已保存编辑');
+}
+
 function saveAll() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(systemData));
 }
 
-// 初始化
-window.onload = () => { go('home'); };
+function initPage() {
+    const local = localStorage.getItem(STORAGE_KEY);
+    if (local) systemData = JSON.parse(local);
+    document.getElementById('productName').value = systemData.product.name;
+    document.getElementById('productCode').value = systemData.product.code;
+    renderStationSelect();
+    if (systemData.currentStationId) {
+        document.getElementById('stationSelect').value = systemData.currentStationId;
+        switchStation();
+    }
+    renderHistorySteps();
+}
+
+function initDragEvent() {
+    const items = document.querySelectorAll('.action-item');
+    const canvas = document.getElementById('stepCanvas');
+    items.forEach(item => {
+        item.ondragstart = e => { dragStepName = item.dataset.name; };
+    });
+    canvas.ondragover = e => e.preventDefault();
+    canvas.ondrop = e => {
+        e.preventDefault();
+        if (!systemData.currentStationId) return alert('请选工站');
+        addStepToCanvas(dragStepName);
+        saveAll();
+        renderHistorySteps();
+    };
+}
+
+function initTabEvent() {
+    document.querySelectorAll('.tab-item').forEach(item => {
+        item.onclick = function() {
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab).classList.add('active');
+        };
+    });
+}
+
+function renderStationSelect() {
+    const sel = document.getElementById('stationSelect');
+    sel.innerHTML = '<option value="">-- 请选择/新增工站 --</option>';
+    systemData.stations.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name || '工站';
+        sel.appendChild(opt);
+    });
+}
+
+function renderStepCanvas(steps = []) {
+    const canvas = document.getElementById('stepCanvas');
+    const empty = document.getElementById('canvasEmpty');
+    canvas.innerHTML = '';
+    if (steps.length === 0) {
+        canvas.appendChild(empty);
+        return;
+    }
+    steps.forEach(s => {
+        const sItem = document.createElement('div');
+        sItem.className = 'step-item';
+        sItem.innerHTML = `<span>${s}</span><button class="del-btn" onclick="deleteStep(this,'${s}')">×</button>`;
+        canvas.appendChild(sItem);
+    });
+}
+
+function renderHistorySteps() {
+    const h = document.getElementById('historySteps');
+    const set = new Set();
+    systemData.stations.forEach(s => s.steps.forEach(step => set.add(step)));
+    if (set.size === 0) {
+        h.innerHTML = '<div class="empty-tip">暂无</div>';
+        return;
+    }
+    h.innerHTML = '';
+    Array.from(set).forEach(step => {
+        const div = document.createElement('div');
+        div.className = 'action-item';
+        div.textContent = step;
+        div.draggable = true;
+        div.dataset.name = step;
+        div.ondragstart = e => { dragStepName = step; };
+        h.appendChild(div);
+    });
+}
+
+function saveProductInfo() {
+    systemData.product.name = document.getElementById('productName').value.trim();
+    systemData.product.code = document.getElementById('productCode').value.trim();
+    saveAll();
+    alert('保存成功');
+}
+
+function addNewStation() {
+    const st = {
+        id: 'S' + Date.now(),
+        name: '', processNo: '', workNum: 1,
+        version: 'V1.0', createDate: new Date().toISOString().split('T')[0],
+        updateDate: new Date().toISOString().split('T')[0],
+        compiler: '', signer: '', equipment: '',
+        tags: ['静电防护','外观检查','重点岗位'],
+        steps: []
+    };
+    systemData.stations.push(st);
+    systemData.currentStationId = st.id;
+    saveAll();
+    renderStationSelect();
+    document.getElementById('stationSelect').value = st.id;
+    switchStation();
+}
+
+function switchStation() {
+    const id = document.getElementById('stationSelect').value;
+    if (!id) {
+        systemData.currentStationId = '';
+        document.getElementById('currentStationName').textContent = '未选择';
+        renderStepCanvas();
+        resetStationAttr();
+        saveAll();
+        return;
+    }
+    const st = systemData.stations.find(x => x.id === id);
+    systemData.currentStationId = id;
+    document.getElementById('currentStationName').textContent = st.name || '工站';
+    renderStepCanvas(st.steps);
+    renderStationAttr(st);
+    saveAll();
+}
+
+function deleteCurrentStation() {
+    if (!systemData.currentStationId) return;
+    if (!confirm('删除？')) return;
+    systemData.stations = systemData.stations.filter(x => x.id !== systemData.currentStationId);
+    systemData.currentStationId = '';
+    saveAll();
+    renderStationSelect();
+    document.getElementById('currentStationName').textContent = '未选择';
+    renderStepCanvas();
+    resetStationAttr();
+    renderHistorySteps();
+}
+
+function renderStationAttr(st) {
+    document.getElementById('stationName').value = st.name || '';
+    document.getElementById('processNo').value = st.processNo || '';
+    document.getElementById('workNum').value = st.workNum || 1;
+    document.getElementById('version').value = st.version || 'V1.0';
+    document.getElementById('createDate').value = st.createDate;
+    document.getElementById('updateDate').value = st.updateDate;
+    document.getElementById('compiler').value = st.compiler || '';
+    document.getElementById('signer').value = st.signer || '';
+    document.getElementById('equipment').value = st.equipment || '';
+    const map = {
+        staticProtect: '静电防护',
+        appearanceCheck: '外观检查',
+        keyPost: '重点岗位',
+        functionTest: '功能测试'
+    };
+    for (const id in map) {
+        document.getElementById(id).checked = st.tags.includes(map[id]);
+    }
+}
+
+function saveStationAttr() {
+    if (!systemData.currentStationId) return;
+    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
+    st.name = document.getElementById('stationName').value.trim();
+    st.processNo = document.getElementById('processNo').value.trim();
+    st.workNum = +document.getElementById('workNum').value || 1;
+    st.version = document.getElementById('version').value.trim();
+    st.createDate = document.getElementById('createDate').value;
+    st.updateDate = document.getElementById('updateDate').value;
+    st.compiler = document.getElementById('compiler').value.trim();
+    st.signer = document.getElementById('signer').value.trim();
+    st.equipment = document.getElementById('equipment').value.trim();
+    const tags = [];
+    const map = {
+        staticProtect: '静电防护',
+        appearanceCheck: '外观检查',
+        keyPost: '重点岗位',
+        functionTest: '功能测试'
+    };
+    for (const id in map) {
+        if (document.getElementById(id).checked) tags.push(map[id]);
+    }
+    st.tags = tags;
+    document.getElementById('currentStationName').textContent = st.name || '工站';
+    renderStationSelect();
+    saveAll();
+    alert('保存成功');
+}
+
+function resetStationAttr() {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('stationName').value = '';
+    document.getElementById('processNo').value = '';
+    document.getElementById('workNum').value = 1;
+    document.getElementById('version').value = 'V1.0';
+    document.getElementById('createDate').value = today;
+    document.getElementById('updateDate').value = today;
+    document.getElementById('compiler').value = '';
+    document.getElementById('signer').value = '';
+    document.getElementById('equipment').value = '';
+    document.getElementById('staticProtect').checked = true;
+    document.getElementById('appearanceCheck').checked = true;
+    document.getElementById('keyPost').checked = true;
+    document.getElementById('functionTest').checked = false;
+}
+
+function addStepToCanvas(name) {
+    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
+    if (st.steps.includes(name)) return alert('已存在');
+    st.steps.push(name);
+    renderStepCanvas(st.steps);
+}
+
+function deleteStep(el, name) {
+    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
+    st.steps = st.steps.filter(s => s !== name);
+    el.parentElement.remove();
+    if (st.steps.length === 0) renderStepCanvas();
+    saveAll();
+    renderHistorySteps();
+}
+
+function clearCurrentStationSteps() {
+    if (!systemData.currentStationId) return;
+    if (!confirm('清空？')) return;
+    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
+    st.steps = [];
+    renderStepCanvas();
+    saveAll();
+    renderHistorySteps();
+}
+
+function saveToLocal() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(systemData));
+}
 </script>
 </body>
 </html>
