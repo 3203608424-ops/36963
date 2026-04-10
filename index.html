@@ -1,327 +1,693 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工艺路线管理 - 最终稳定版</title>
-<style>
-  *{box-sizing:border-box;font-family: "Microsoft YaHei",sans-serif;}
-  body{background:#f5f7fa;padding:20px;margin:0;}
-  .container{max-width:1000px;margin:0 auto;background:#fff;border-radius:8px;padding:24px;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
-  .nav{margin-bottom:20px;}
-  .nav button{padding:8px 16px;margin-right:8px;border:none;border-radius:4px;cursor:pointer;}
-  .btn-primary{background:#3498db;color:white;}
-  .btn-success{background:#28a745;color:white;}
-  .btn-warning{background:#fd7e14;color:white;}
-  .btn-danger{background:#dc3545;color:white;}
-  .btn-default{background:#6c757d;color:white;}
-  .section{display:none;}
-  .section.active{display:block;}
-  input,select,textarea{width:100%;padding:8px;margin-bottom:10px;border:1px solid #ddd;border-radius:4px;}
-  .station-box{margin-bottom:12px;}
-  .step-item{padding:6px 10px;background:#f8f9fa;border-radius:4px;margin-bottom:6px;}
-  .design-item{padding:12px;background:#f8f9fa;border-radius:6px;margin-bottom:10px;}
-  .design-item h4{margin:0 0 4px 0;font-size:14px;}
-  .design-item p{margin:0 0 4px 0;font-size:13px;color:#333;}
-  .design-item .time{font-size:12px;color:#999;}
-  .excel-table{width:100%;border-collapse:collapse;margin-top:20px;}
-  .excel-table th,.excel-table td{border:1px solid #ddd;padding:8px;text-align:left;font-size:14px;}
-  .excel-table th{background:#f1f3f5;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工艺路线管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", sans-serif;
+        }
+        body {
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        h1 {
+            font-size: 24px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .left-panel, .right-panel {
+            background: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            border: 1px solid #e9ecef;
+        }
+        .main-panel {
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .action-library {
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+        .action-item {
+            background: #fff;
+            border: 1px solid #3498db;
+            color: #3498db;
+            padding: 8px;
+            border-radius: 6px;
+            cursor: move;
+            text-align: center;
+            font-size: 14px;
+            position: relative;
+        }
+        .action-item:hover {
+            background: #e3f2fd;
+        }
+        .action-item .act-del {
+            width: 16px;
+            height: 16px;
+            background: #dc3545;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 12px;
+            line-height: 16px;
+            text-align: center;
+            cursor: pointer;
+            position: absolute;
+            top: -6px;
+            right: -6px;
+        }
+        .canvas-area {
+            min-height: 300px;
+            border: 2px dashed #ced4da;
+            border-radius: 6px;
+            padding: 20px;
+        }
+        .canvas-empty {
+            color: #adb5bd;
+            text-align: center;
+            padding-top: 80px;
+        }
+        .step-item {
+            background: #fff;
+            border: 1px solid #28a745;
+            color: #28a745;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .step-item .del-btn {
+            background: #dc3545;
+            color: #fff;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            line-height: 22px;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 6px;
+            margin-bottom: 6px;
+        }
+        .btn-primary { background: #3498db; color: #fff; }
+        .btn-danger { background: #dc3545; color: #fff; }
+        .btn-default { background: #6c757d; color: #fff; }
+        .btn-success { background: #28a745; color: #fff; }
+        .btn-warning { background: #fd7e14; color: #fff; }
+
+        .tab-nav {
+            display: flex;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 15px;
+        }
+        .tab-item {
+            padding: 8px 16px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+        .tab-item.active {
+            border-bottom-color: #3498db;
+            color: #3498db;
+            font-weight: bold;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .excel-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: #fff;
+        }
+        .excel-table th, .excel-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+            font-size: 14px;
+        }
+        .excel-table th {
+            background: #f1f3f5;
+        }
+        .excel-box {
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        .copy-btn {
+            margin-top: 10px;
+            background: #28a745;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+        .folder {
+            background: #e9ecef;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .folder-content {
+            display: none;
+            margin-left: 20px;
+            padding-left: 15px;
+            border-left: 2px dashed #ccc;
+        }
+        .route-item {
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .device-box {
+            max-height: 180px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 8px;
+            margin-top: 8px;
+        }
+        .device-item {
+            padding: 4px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+        }
+        .design-box {
+            margin-top: 20px;
+        }
+        .design-item {
+            background: #f8f9fa;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+        .design-item p {
+            margin: 4px 0;
+            font-size: 13px;
+        }
+        .design-time {
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
 </head>
 <body>
-
 <div class="container">
-  <div class="nav">
-    <button class="btn btn-primary" onclick="showPage('edit')">工艺编辑</button>
-    <button class="btn btn-default" onclick="showPage('mydesign')">我的设计</button>
-  </div>
-
-  <!-- 编辑页面 -->
-  <div id="edit" class="section active">
-    <h3>产品信息</h3>
-    <input id="productName" placeholder="产品名称">
-    <input id="productCode" placeholder="产品代码">
-
-    <h3>工站管理</h3>
-    <div class="station-box">
-      <select id="stationSelect" onchange="loadCurrentStation()"></select>
-      <button class="btn btn-default" onclick="addStation()">新增工站</button>
-      <button class="btn btn-danger" onclick="deleteStation()">删除工站</button>
+    <h1>工艺路线管理系统</h1>
+    <div style="margin-bottom:20px;">
+        <button class="btn btn-primary" onclick="showPage('edit')">工艺流程编辑</button>
+        <button class="btn btn-default" onclick="showPage('mydesign')">我的设计</button>
     </div>
 
-    <input id="stationName" placeholder="工站名称" oninput="autoSaveAttr()">
-    <input id="processNo" placeholder="工序编号" oninput="autoSaveAttr()">
-    <input id="version" value="V1.0" placeholder="版本" oninput="autoSaveAttr()">
+    <div id="page-edit" class="page-section active">
+        <div class="form-group" style="max-width: 800px;">
+            <h3>产品信息</h3>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <label>产品名称</label>
+                    <input type="text" id="productName" placeholder="例如：主板组装">
+                </div>
+                <div>
+                    <label>产品代码</label>
+                    <input type="text" id="productCode" placeholder="例如：MAIN-001">
+                </div>
+            </div>
+        </div>
 
-    <h4>工艺流程步骤</h4>
-    <div id="stepList"></div>
-    <button class="btn btn-default" onclick="addNewStep()">添加步骤</button>
+        <div class="grid-layout">
+            <div class="left-panel">
+                <h3>工艺动作库</h3>
+                <button class="btn btn-primary btn-sm" onclick="addCustomAction()">新增动作</button>
+                <div class="action-library" id="actionLibrary"></div>
+            </div>
 
-    <div style="margin-top:20px;">
-      <button class="btn btn-warning" onclick="saveSingleToMyDesign()">单独保存此工站到我的设计</button>
-      <button class="btn btn-success" onclick="saveAllToMyDesign()">一键保存全部工站到我的设计</button>
+            <div class="main-panel">
+                <div class="station-select">
+                    <h3>工站管理</h3>
+                    <div class="form-group" style="max-width: 400px;">
+                        <label for="stationSelect">选择工站</label>
+                        <select id="stationSelect" onchange="switchStation()"></select>
+                        <button class="btn btn-primary" onclick="addNewStation()">新增工站</button>
+                        <button class="btn btn-default" onclick="renameStation()">工站改名</button>
+                        <button class="btn btn-danger" onclick="deleteCurrentStation()">删除工站</button>
+                        <button class="btn btn-warning" onclick="saveCurrentToDesign()">单独保存此工站</button>
+                    </div>
+                </div>
+                <h4>当前工站: <span id="currentStationName" style="color: #dc3545;">未选择</span></h4>
+                <div class="canvas-area" id="stepCanvas">
+                    <div class="canvas-empty" id="canvasEmpty">拖拽动作到此处</div>
+                </div>
+                <div style="margin-top:15px;">
+                    <button class="btn btn-default" onclick="clearCurrentStationSteps()">清空步骤</button>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <h3>工站属性编辑</h3>
+                <div class="tab-nav">
+                    <div class="tab-item active" data-tab="baseInfo">基本信息</div>
+                    <div class="tab-item active" data-tab="versionInfo">版本信息</div>
+                    <div class="tab-item" data-tab="deviceInfo">设备与标识</div>
+                </div>
+                <div class="tab-content active" id="baseInfo">
+                    <div class="form-group">
+                        <label for="stationName">工站名称</label>
+                        <input type="text" id="stationName">
+                    </div>
+                    <div class="form-group">
+                        <label for="processNo">工序编号</label>
+                        <input type="text" id="processNo">
+                    </div>
+                    <div class="form-group">
+                        <label for="workNum">作业人数</label>
+                        <input type="number" id="workNum" value="1">
+                    </div>
+                </div>
+                <div class="tab-content" id="versionInfo">
+                    <div class="form-group">
+                        <label for="version">版本</label>
+                        <input type="text" id="version" value="V1.0">
+                    </div>
+                    <div class="form-group">
+                        <label for="createDate">制定日期</label>
+                        <input type="date" id="createDate">
+                    </div>
+                </div>
+                <div class="tab-content" id="deviceInfo">
+                    <div class="form-group">
+                        <label>设备工装</label>
+                        <div style="display:flex;gap:6px;">
+                            <input type="text" id="deviceInput" placeholder="设备名称" style="flex:1;">
+                            <button class="btn btn-primary btn-sm" onclick="addDevice()">添加</button>
+                        </div>
+                        <div class="device-box" id="deviceList"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top:24px;">
+            <button class="btn btn-success" style="padding:12px 28px;font-size:16px;" onclick="saveAllToExcelAndDesign()">
+                📥 一键保存全部到Excel+我的设计
+            </button>
+        </div>
+
+        <div id="excelOutputArea" class="excel-box" style="display:none;">
+            <h4>Excel 表格（可直接复制粘贴）</h4>
+            <table id="excelTable" class="excel-table"></table>
+            <button class="copy-btn" onclick="copyExcel()">复制表格</button>
+        </div>
     </div>
 
-    <div style="margin-top:12px;">
-      <button class="btn btn-success" onclick="exportCurrentStationToExcel()">导出当前工站Excel</button>
-      <button class="btn btn-primary" onclick="exportAllStationToExcel()">导出全部工站Excel</button>
+    <div id="page-mydesign" class="page-section" style="display:none;">
+        <h2>我的设计</h2>
+        <button class="btn btn-primary" onclick="refreshMyDesign()">刷新列表</button>
+        <div class="design-box" id="designList"></div>
     </div>
-
-    <div id="excelPreview" style="margin-top:20px;"></div>
-  </div>
-
-  <!-- 我的设计 -->
-  <div id="mydesign" class="section">
-    <h3>我的设计</h3>
-    <div id="designList"></div>
-  </div>
 </div>
 
 <script>
-const KEY = 'PROCESS_FINAL_SAFE';
-let gData = JSON.parse(localStorage.getItem(KEY)) || {
-  product: { name: '', code: '' },
-  stations: [],
-  currentStationId: '',
-  myDesign: []
+const STORAGE_KEY = 'process_final_ok_no_change';
+let systemData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+    product: { name: '', code: '' },
+    stations: [],
+    currentStationId: '',
+    actions: ["自检","插线","理线","扣合","锁付","贴付","打胶","外观检查","包装"],
+    myDesign: []
 };
 
-let stationSteps = [];
+let dragName = '';
+let currentDeviceList = [];
 
-// 页面切换
+window.onload = function () {
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('createDate').value = today;
+    renderActionLibrary();
+    renderStationSelect();
+    initDrag();
+    initTab();
+};
+
 function showPage(page) {
-  document.querySelectorAll('.section').forEach(el => el.classList.remove('active'));
-  document.getElementById(page).classList.add('active');
-  if (page === 'mydesign') renderMyDesign();
+    document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+    document.getElementById('page-' + page).style.display = 'block';
+    if (page === 'mydesign') refreshMyDesign();
 }
 
-// 保存到本地
-function saveData() {
-  localStorage.setItem(KEY, JSON.stringify(gData));
+// 动作库
+function renderActionLibrary() {
+    const wrap = document.getElementById('actionLibrary');
+    wrap.innerHTML = '';
+    systemData.actions.forEach((name, idx) => {
+        const div = document.createElement('div');
+        div.className = 'action-item';
+        div.draggable = true;
+        div.dataset.name = name;
+        div.innerHTML = `<div class="act-del" onclick="delAction(${idx})">×</div>${name}`;
+        wrap.appendChild(div);
+    });
+    save();
+}
+function addCustomAction() {
+    const name = prompt('动作名称：');
+    if (name) {
+        systemData.actions.push(name);
+        renderActionLibrary();
+        initDrag();
+    }
+}
+function delAction(idx) {
+    systemData.actions.splice(idx, 1);
+    renderActionLibrary();
+    initDrag();
+}
+
+// 拖拽
+function initDrag() {
+    setTimeout(() => {
+        document.querySelectorAll('.action-item').forEach(item => {
+            item.ondragstart = e => { dragName = item.dataset.name; };
+        });
+    }, 100);
+    const canvas = document.getElementById('stepCanvas');
+    canvas.ondragover = e => e.preventDefault();
+    canvas.ondrop = e => {
+        e.preventDefault();
+        if (!systemData.currentStationId) return alert('请先选择工站');
+        addStep(dragName);
+    };
 }
 
 // 工站
-function addStation() {
-  const id = 'S' + Date.now();
-  const station = {
-    id, name: '', processNo: '', version: 'V1.0',
-    steps: [], deviceList: []
-  };
-  gData.stations.push(station);
-  gData.currentStationId = id;
-  saveData();
-  renderStationSelect();
-  loadCurrentStation();
+function addNewStation() {
+    const today = new Date().toISOString().split('T')[0];
+    const station = {
+        id: 'S' + Date.now(), name: '', processNo: '', workNum: 1,
+        version: 'V1.0', createDate: today, steps: [], deviceList: []
+    };
+    systemData.stations.push(station);
+    systemData.currentStationId = station.id;
+    save();
+    renderStationSelect();
+    document.getElementById('stationSelect').value = station.id;
+    switchStation();
 }
-
+function switchStation() {
+    const id = document.getElementById('stationSelect').value;
+    if (!id) {
+        systemData.currentStationId = '';
+        document.getElementById('currentStationName').textContent = '未选择';
+        document.getElementById('stepCanvas').innerHTML = '<div class="canvas-empty">拖拽动作到此处</div>';
+        return;
+    }
+    const st = systemData.stations.find(s => s.id === id);
+    systemData.currentStationId = id;
+    document.getElementById('currentStationName').textContent = st.name || '未命名工站';
+    document.getElementById('stationName').value = st.name || '';
+    document.getElementById('processNo').value = st.processNo || '';
+    document.getElementById('workNum').value = st.workNum || 1;
+    document.getElementById('version').value = st.version || 'V1.0';
+    document.getElementById('createDate').value = st.createDate;
+    currentDeviceList = [...st.deviceList];
+    renderDeviceList();
+    renderSteps(st.steps);
+    save();
+}
+function renameStation() {
+    const id = systemData.currentStationId;
+    if (!id) return alert('请选择工站');
+    const st = systemData.stations.find(s => s.id === id);
+    const newName = prompt('新名称', st.name);
+    if (newName) {
+        st.name = newName;
+        save();
+        renderStationSelect();
+        document.getElementById('currentStationName').textContent = newName;
+    }
+}
+function deleteCurrentStation() {
+    if (!systemData.currentStationId) return;
+    systemData.stations = systemData.stations.filter(s => s.id !== systemData.currentStationId);
+    systemData.currentStationId = '';
+    save();
+    renderStationSelect();
+    switchStation();
+}
 function renderStationSelect() {
-  const sel = document.getElementById('stationSelect');
-  sel.innerHTML = '<option value="">--选择工站--</option>';
-  gData.stations.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s.id;
-    opt.textContent = s.name || '未命名工站';
-    if (s.id === gData.currentStationId) opt.selected = true;
-    sel.appendChild(opt);
-  });
-}
-
-function loadCurrentStation() {
-  const id = document.getElementById('stationSelect').value;
-  if (!id) return;
-  gData.currentStationId = id;
-  const st = gData.stations.find(s => s.id === id);
-  if (!st) return;
-  document.getElementById('stationName').value = st.name || '';
-  document.getElementById('processNo').value = st.processNo || '';
-  document.getElementById('version').value = st.version || 'V1.0';
-  stationSteps = [...st.steps];
-  renderSteps();
-  saveData();
-}
-
-function autoSaveAttr() {
-  const id = gData.currentStationId;
-  if (!id) return;
-  const st = gData.stations.find(s => s.id === id);
-  if (!st) return;
-  st.name = document.getElementById('stationName').value.trim();
-  st.processNo = document.getElementById('processNo').value.trim();
-  st.version = document.getElementById('version').value.trim();
-  st.steps = [...stationSteps];
-  saveData();
-  renderStationSelect();
-}
-
-function deleteStation() {
-  const id = gData.currentStationId;
-  if (!id) return;
-  gData.stations = gData.stations.filter(s => s.id !== id);
-  gData.currentStationId = '';
-  saveData();
-  renderStationSelect();
-  document.getElementById('stationName').value = '';
-  document.getElementById('processNo').value = '';
-  stationSteps = [];
-  renderSteps();
+    const sel = document.getElementById('stationSelect');
+    sel.innerHTML = '<option value="">--请选择--</option>';
+    systemData.stations.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name || '工站';
+        sel.appendChild(opt);
+    });
 }
 
 // 步骤
-function renderSteps() {
-  const box = document.getElementById('stepList');
-  box.innerHTML = '';
-  stationSteps.forEach((s, i) => {
-    const div = document.createElement('div');
-    div.className = 'step-item';
-    div.innerHTML = `${s} <button onclick="delStep(${i})" style="float:right;border:none;background:transparent;cursor:pointer;color:red">×</button>`;
-    box.appendChild(div);
-  });
-}
-
-function addNewStep() {
-  const val = prompt('输入步骤内容');
-  if (val) {
-    stationSteps.push(val);
-    renderSteps();
-    autoSaveAttr();
-  }
-}
-
-function delStep(index) {
-  stationSteps.splice(index, 1);
-  renderSteps();
-  autoSaveAttr();
-}
-
-// ========== 保存到我的设计（带时间） ==========
-function saveSingleToMyDesign() {
-  autoSaveAttr();
-  const id = gData.currentStationId;
-  if (!id) return alert('请选择工站');
-  const st = gData.stations.find(s => s.id === id);
-  const now = new Date().toLocaleString();
-
-  gData.myDesign.unshift({
-    type: 'single',
-    product: {
-      name: document.getElementById('productName').value || '未命名',
-      code: document.getElementById('productCode').value || '无代码'
-    },
-    station: JSON.parse(JSON.stringify(st)),
-    time: now
-  });
-
-  saveData();
-  alert('已单独保存到我的设计！');
-}
-
-function saveAllToMyDesign() {
-  autoSaveAttr();
-  const now = new Date().toLocaleString();
-  gData.myDesign.unshift({
-    type: 'all',
-    product: {
-      name: document.getElementById('productName').value || '未命名产品',
-      code: document.getElementById('productCode').value || '无代码'
-    },
-    stations: JSON.parse(JSON.stringify(gData.stations)),
-    time: now
-  });
-  saveData();
-  alert('已保存全部工站到我的设计！');
-}
-
-// ========== 我的设计列表 ==========
-function renderMyDesign() {
-  const box = document.getElementById('designList');
-  box.innerHTML = '';
-  if (gData.myDesign.length === 0) {
-    box.innerHTML = '<p>暂无保存记录</p>';
-    return;
-  }
-  gData.myDesign.forEach((item, idx) => {
-    const div = document.createElement('div');
-    div.className = 'design-item';
-    let html = `
-      <h4>${item.product.name}（${item.product.code}）</h4>
-      <p class="time">保存时间：${item.time}</p>
-      <p>类型：${item.type === 'single' ? '单个工站' : '全部工站'}</p>
-      <button class="btn btn-danger btn-sm" onclick="delDesign(${idx})">删除</button>
-      <hr style="margin:6px 0">
-    `;
-    if (item.type === 'single') {
-      html += `<p>工站：${item.station.name || '无'}</p>`;
-      html += `<p>流程：${item.station.steps.join(' → ')}</p>`;
-    } else {
-      item.stations.forEach(s => {
-        html += `<p>【${s.name}】${s.steps.join(' → ')}</p>`;
-      });
+function renderSteps(steps) {
+    const canvas = document.getElementById('stepCanvas');
+    if (steps.length === 0) {
+        canvas.innerHTML = '<div class="canvas-empty">拖拽动作到此处</div>';
+        return;
     }
-    div.innerHTML = html;
-    box.appendChild(div);
-  });
+    let html = '';
+    steps.forEach(s => {
+        html += `<div class="step-item"><span>${s}</span><button class="del-btn" onclick="delStep('${s}')">×</button></div>`;
+    });
+    canvas.innerHTML = html;
+}
+function addStep(name) {
+    const st = systemData.stations.find(s => s.id === systemData.currentStationId);
+    if (!st.steps.includes(name)) st.steps.push(name);
+    renderSteps(st.steps);
+    save();
+}
+function delStep(name) {
+    const st = systemData.stations.find(s => s.id === systemData.currentStationId);
+    st.steps = st.steps.filter(s => s !== name);
+    renderSteps(st.steps);
+    save();
+}
+function clearCurrentStationSteps() {
+    const st = systemData.stations.find(s => s.id === systemData.currentStationId);
+    st.steps = [];
+    renderSteps(st.steps);
+    save();
 }
 
-function delDesign(index) {
-  gData.myDesign.splice(index, 1);
-  saveData();
-  renderMyDesign();
+// 设备
+function addDevice() {
+    const v = document.getElementById('deviceInput').value.trim();
+    if (v) {
+        currentDeviceList.push(v);
+        renderDeviceList();
+        document.getElementById('deviceInput').value = '';
+    }
+}
+function renderDeviceList() {
+    const box = document.getElementById('deviceList');
+    box.innerHTML = '';
+    currentDeviceList.forEach((d, i) => {
+        box.innerHTML += `<div class="device-item">${d}<button class="btn btn-danger btn-sm" onclick="delDevice(${i})">删</button></div>`;
+    });
+}
+function delDevice(idx) {
+    currentDeviceList.splice(idx, 1);
+    renderDeviceList();
 }
 
-// ========== Excel导出 ==========
-function exportCurrentStationToExcel() {
-  autoSaveAttr();
-  const id = gData.currentStationId;
-  if (!id) return alert('请选择工站');
-  const st = gData.stations.find(s => s.id === id);
-  const pn = document.getElementById('productName').value || '未命名';
-  const pc = document.getElementById('productCode').value || '无代码';
+// 保存属性
+function saveAttr() {
+    const st = systemData.stations.find(s => s.id === systemData.currentStationId);
+    if (!st) return;
+    st.name = document.getElementById('stationName').value.trim();
+    st.processNo = document.getElementById('processNo').value.trim();
+    st.workNum = +document.getElementById('workNum').value || 1;
+    st.version = document.getElementById('version').value.trim();
+    st.createDate = document.getElementById('createDate').value;
+    st.deviceList = [...currentDeviceList];
+    save();
+}
 
-  let html = `<table class="excel-table">
-    <tr><th>产品</th><th>代码</th><th>工站</th><th>工序号</th><th>流程</th><th>版本</th></tr>
+// 单独保存当前工站到我的设计
+function saveCurrentToDesign() {
+    saveAttr();
+    const id = systemData.currentStationId;
+    if (!id) return alert('请选择工站');
+    const st = systemData.stations.find(s => s.id === id);
+    const now = new Date().toLocaleString();
+    systemData.myDesign.unshift({
+        type: 'single',
+        product: {
+            name: document.getElementById('productName').value || '未命名',
+            code: document.getElementById('productCode').value || '无代码'
+        },
+        station: JSON.parse(JSON.stringify(st)),
+        time: now
+    });
+    save();
+    alert('已保存当前工站到我的设计！');
+}
+
+// 一键保存全部 + Excel
+function saveAllToExcelAndDesign() {
+    saveAttr();
+    const pn = document.getElementById('productName').value || '未命名产品';
+    const pc = document.getElementById('productCode').value || '无代码';
+    const now = new Date().toLocaleString();
+
+    // 保存到我的设计
+    systemData.myDesign.unshift({
+        type: 'all',
+        product: { name: pn, code: pc },
+        stations: JSON.parse(JSON.stringify(systemData.stations)),
+        time: now
+    });
+    save();
+
+    // 导出Excel
+    const table = document.getElementById('excelTable');
+    table.innerHTML = `
     <tr>
-      <td>${pn}</td>
-      <td>${pc}</td>
-      <td>${st.name}</td>
-      <td>${st.processNo}</td>
-      <td>${st.steps.join(' → ')}</td>
-      <td>${st.version}</td>
-    </tr>
-  </table>`;
-  document.getElementById('excelPreview').innerHTML = html;
-}
-
-function exportAllStationToExcel() {
-  autoSaveAttr();
-  const pn = document.getElementById('productName').value || '未命名产品';
-  const pc = document.getElementById('productCode').value || '无代码';
-
-  let html = `<table class="excel-table">
-    <tr><th>序号</th><th>产品</th><th>代码</th><th>工站</th><th>工序号</th><th>流程</th><th>版本</th></tr>`;
-
-  gData.stations.forEach((st, i) => {
-    html += `
-    <tr>
-      <td>${i + 1}</td>
-      <td>${pn}</td>
-      <td>${pc}</td>
-      <td>${st.name}</td>
-      <td>${st.processNo}</td>
-      <td>${st.steps.join(' → ')}</td>
-      <td>${st.version}</td>
+        <th>序号</th><th>产品名称</th><th>产品代码</th><th>工站</th><th>工序编号</th><th>工艺流程</th><th>设备</th><th>人数</th><th>版本</th>
     </tr>`;
-  });
 
-  html += '</table>';
-  document.getElementById('excelPreview').innerHTML = html;
+    systemData.stations.forEach((st, i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+        <td>${i+1}</td>
+        <td>${pn}</td>
+        <td>${pc}</td>
+        <td>${st.name||''}</td>
+        <td>${st.processNo||''}</td>
+        <td>${st.steps.join(' → ')}</td>
+        <td>${(st.deviceList||[]).join('，')}</td>
+        <td>${st.workNum||1}</td>
+        <td>${st.version||'V1.0'}</td>`;
+        table.appendChild(tr);
+    });
+
+    document.getElementById('excelOutputArea').style.display = 'block';
 }
 
-// 初始化
-window.onload = function () {
-  renderStationSelect();
-  loadCurrentStation();
-};
+// 复制Excel
+function copyExcel() {
+    const range = document.createRange();
+    range.selectNode(document.getElementById('excelTable'));
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+    document.execCommand('copy');
+    alert('已复制，可粘贴到Excel');
+}
+
+// 我的设计列表
+function refreshMyDesign() {
+    const box = document.getElementById('designList');
+    box.innerHTML = '';
+    if (systemData.myDesign.length === 0) {
+        box.innerHTML = '<p>暂无保存记录</p>';
+        return;
+    }
+    systemData.myDesign.forEach((item, i) => {
+        const div = document.createElement('div');
+        div.className = 'design-item';
+        let html = `
+            <p><strong>${item.product.name}（${item.product.code}）</strong></p>
+            <p class="design-time">保存时间：${item.time}</p>
+            <p>类型：${item.type === 'single' ? '单个工站' : '全部工站'}</p>
+            <button class="btn btn-danger btn-sm" onclick="delDesign(${i})">删除</button>
+            <hr style="margin:8px 0">
+        `;
+        if (item.type === 'single') {
+            html += `<p>工站：${item.station.name || '无'}</p>`;
+            html += `<p>流程：${item.station.steps.join(' → ')}</p>`;
+        } else {
+            item.stations.forEach(s => {
+                html += `<p>【${s.name}】${s.steps.join(' → ')}</p>`;
+            });
+        }
+        div.innerHTML = html;
+        box.appendChild(div);
+    });
+}
+function delDesign(index) {
+    systemData.myDesign.splice(index, 1);
+    save();
+    refreshMyDesign();
+}
+
+// 存储
+function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(systemData));
+}
+
+// 标签页
+function initTab() {
+    document.querySelectorAll('.tab-item').forEach(item => {
+        item.onclick = function () {
+            document.querySelectorAll('.tab-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+            document.getElementById(this.dataset.tab).classList.add('active');
+        };
+    });
+}
 </script>
 </body>
 </html>
