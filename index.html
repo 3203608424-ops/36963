@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工艺路线管理系统（带动作图片）</title>
+    <title>工艺路线管理系统</title>
     <style>
         * {
             margin: 0;
@@ -84,6 +84,7 @@
             gap: 6px;
             text-align: center;
             font-size: 13px;
+            position: relative;
         }
         .action-item img {
             width: 36px;
@@ -107,8 +108,8 @@
             justify-content: center;
             cursor: pointer;
             position: absolute;
-            margin-top: -6px;
-            margin-left: 80px;
+            top: -6px;
+            right: -6px;
         }
         .canvas-area {
             min-height: 300px;
@@ -204,6 +205,10 @@
         }
         .btn-success {
             background: #28a745;
+            color: #fff;
+        }
+        .btn-warning {
+            background: #fd7e14;
             color: #fff;
         }
         .tab-nav {
@@ -342,7 +347,7 @@
 </head>
 <body>
 <div class="container">
-    <h1>工艺路线管理系统（带动作图标 + 工站改名）</h1>
+    <h1>工艺路线管理系统</h1>
     <div style="margin-bottom:20px;">
         <button class="btn btn-primary" onclick="showPage('edit')">工艺流程编辑</button>
         <button class="btn btn-default" onclick="showPage('mydesign')">我的设计</button>
@@ -370,7 +375,6 @@
                     <button class="btn btn-primary btn-sm" onclick="addCustomAction()">新增动作</button>
                 </div>
                 <div class="action-library" id="actionLibrary"></div>
-
                 <h3 class="history-steps">历史步骤</h3>
                 <div id="historySteps" class="empty-tip">暂无历史步骤记录</div>
             </div>
@@ -384,6 +388,7 @@
                         <button class="btn btn-primary" onclick="addNewStation()">新增工站</button>
                         <button class="btn btn-default" onclick="renameStation()">工站改名</button>
                         <button class="btn btn-danger" onclick="deleteCurrentStation()">删除工站</button>
+                        <button class="btn btn-warning" onclick="saveCurrentStationToMyDesign()">单独保存此工站</button>
                     </div>
                 </div>
                 <h4>当前工站: <span id="currentStationName" style="color: #dc3545;">未选择</span></h4>
@@ -456,11 +461,6 @@
                         <div class="checkbox-item"><input type="checkbox" id="keyPost" checked><label>重点岗位</label></div>
                         <div class="checkbox-item"><input type="checkbox" id="functionTest"><label>功能测试</label></div>
                     </div>
-                    <div class="form-group" style="margin-top:15px;">
-                        <label>参考图片</label>
-                        <input type="file" id="imgUpload" accept="image/*" multiple onchange="previewImages()">
-                        <div class="img-preview" id="imgPreview"></div>
-                    </div>
                 </div>
             </div>
         </div>
@@ -472,9 +472,9 @@
         </div>
 
         <div id="excelOutputArea" class="excel-box" style="display:none;">
-            <h4>✅ 工艺路线 Excel 表（可直接全选复制粘贴到 Excel）</h4>
+            <h4>✅ 工艺路线 Excel 表（可直接粘贴）</h4>
             <table id="excelTable" class="excel-table"></table>
-            <button class="copy-btn" onclick="copyExcelTable()">复制表格到剪贴板</button>
+            <button class="copy-btn" onclick="copyExcelTable()">复制表格</button>
         </div>
     </div>
 
@@ -482,11 +482,11 @@
         <h2>我的设计</h2>
         <div class="form-group">
             <button class="btn btn-primary" onclick="renderMyDesign()">刷新列表</button>
-            <button class="btn btn-success" onclick="startMergeToExcel()">合并并生成 Excel 总表</button>
+            <button class="btn btn-success" onclick="startMergeToExcel()">合并生成 Excel</button>
         </div>
         <div id="myDesignList"></div>
         <div id="mergeExcelArea" class="excel-box" style="display:none;margin-top:20px;">
-            <h4>✅ 合并后 Excel 总表</h4>
+            <h4>✅ 合并后 Excel 表</h4>
             <table id="mergeExcelTable" class="excel-table"></table>
             <button class="copy-btn" onclick="copyMergeExcel()">复制合并表格</button>
         </div>
@@ -494,7 +494,7 @@
 </div>
 
 <script>
-const STORAGE_KEY = 'process_icon_excel_final';
+const STORAGE_KEY = 'process_final_ok';
 let systemData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
     product: { name: '', code: '' },
     stations: [],
@@ -516,7 +516,6 @@ let systemData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
 
 let dragStepName = '';
 let mergeMode = false;
-let preImgs = [];
 let currentDeviceList = [];
 
 window.onload = function () {
@@ -535,7 +534,7 @@ function showPage(page) {
     if (page === 'mydesign') renderMyDesign();
 }
 
-// ================== 动作库（带图标） ==================
+// 动作库
 function renderActionLibrary() {
     const wrap = document.getElementById('actionLibrary');
     wrap.innerHTML = '';
@@ -544,47 +543,73 @@ function renderActionLibrary() {
         div.className = 'action-item';
         div.draggable = true;
         div.dataset.name = act.name;
-        div.innerHTML = `
-            <div class="act-del" onclick="deleteAction(${idx})">×</div>
-            <img src="${act.icon}" alt="${act.name}">
-            <span>${act.name}</span>
-        `;
+        div.innerHTML = `<div class="act-del" onclick="deleteAction(${idx})">×</div><img src="${act.icon}"><span>${act.name}</span>`;
         wrap.appendChild(div);
     });
     saveAll();
 }
 function addCustomAction() {
-    const name = prompt('输入新动作：');
+    const name = prompt('新动作名称：');
     if (!name) return;
-    systemData.actions.push({
-        name: name,
-        icon: "https://picsum.photos/36/36?random=" + Math.random()
-    });
+    systemData.actions.push({ name, icon: "https://picsum.photos/36/36?random=" + Math.random() });
     renderActionLibrary();
     initDragEvent();
 }
 function deleteAction(idx) {
-    if (!confirm('删除该动作？')) return;
+    if (!confirm('删除？')) return;
     systemData.actions.splice(idx, 1);
     renderActionLibrary();
     initDragEvent();
 }
 
-// ================== 工站改名 ==================
+// 工站改名
 function renameStation() {
     const id = systemData.currentStationId;
-    if (!id) { alert('请先选择一个工站'); return; }
+    if (!id) return alert('先选工站');
     const st = systemData.stations.find(s => s.id === id);
-    const newName = prompt('输入新工站名称：', st.name || '');
-    if (!newName) return;
-    st.name = newName;
+    const nn = prompt('新名称', st.name);
+    if (!nn) return;
+    st.name = nn;
     saveAll();
     renderStationSelect();
-    document.getElementById('currentStationName').textContent = newName;
-    document.getElementById('stationName').value = newName;
+    document.getElementById('currentStationName').textContent = nn;
+    document.getElementById('stationName').value = nn;
 }
 
-// ================== 设备管理 ==================
+// 单独保存当前工站到我的设计
+function saveCurrentStationToMyDesign() {
+    saveStationAttr();
+    const pid = systemData.currentStationId;
+    if (!pid) return alert('先选工站');
+
+    const pn = document.getElementById('productName').value.trim() || '未命名';
+    const pc = document.getElementById('productCode').value.trim() || '无代码';
+    const st = systemData.stations.find(s => s.id === pid);
+    if (!st) return;
+
+    const folderName = prompt('保存到文件夹：', pc);
+    if (!folderName) return;
+
+    let folder = systemData.folders.find(f => f.name === folderName);
+    if (!folder) {
+        folder = { id: 'F' + Date.now(), name: folderName };
+        systemData.folders.push(folder);
+    }
+
+    systemData.routes.push({
+        id: 'R' + Date.now(),
+        folderId: folder.id,
+        productName: pn,
+        productCode: pc,
+        stations: [JSON.parse(JSON.stringify(st))],
+        time: new Date().toLocaleString()
+    });
+
+    saveAll();
+    alert('已单独保存当前工站到我的设计！');
+}
+
+// 设备
 function addDevice() {
     const v = document.getElementById('deviceInput').value.trim();
     if (!v) return;
@@ -607,11 +632,11 @@ function delDevice(i) {
     renderDeviceList();
 }
 
-// ================== 一键保存 = Excel ==================
+// 一键保存 + Excel
 function saveToExcel() {
     saveStationAttr();
-    const pName = document.getElementById('productName').value.trim() || '未命名产品';
-    const pCode = document.getElementById('productCode').value.trim() || '无型号';
+    const pn = document.getElementById('productName').value.trim() || '未命名产品';
+    const pc = document.getElementById('productCode').value.trim() || '无代码';
 
     const table = document.getElementById('excelTable');
     table.innerHTML = `
@@ -628,384 +653,303 @@ function saveToExcel() {
         </tr>
     `;
 
-    systemData.stations.forEach((st, idx) => {
+    systemData.stations.forEach((st, i) => {
         const row = document.createElement('tr');
         const flow = st.steps.join(' → ');
-        const device = (st.deviceList || []).join('，');
+        const dev = (st.deviceList || []).join('，');
         row.innerHTML = `
-            <td>${idx + 1}</td>
-            <td>${pName}</td>
-            <td>${pCode}</td>
-            <td>${st.name || ''}</td>
-            <td>${st.processNo || ''}</td>
+            <td>${i+1}</td>
+            <td>${pn}</td>
+            <td>${pc}</td>
+            <td>${st.name||''}</td>
+            <td>${st.processNo||''}</td>
             <td>${flow}</td>
-            <td>${device}</td>
-            <td>${st.workNum || 1}</td>
-            <td>${st.version || 'V1.0'}</td>
+            <td>${dev}</td>
+            <td>${st.workNum||1}</td>
+            <td>${st.version||'V1.0'}</td>
         `;
         table.appendChild(row);
     });
 
     document.getElementById('excelOutputArea').style.display = 'block';
 
-    const folderName = prompt('保存到文件夹：', pCode);
-    if (folderName) {
-        let folder = systemData.folders.find(f => f.name === folderName);
-        if (!folder) { folder = { id: 'F' + Date.now(), name: folderName }; systemData.folders.push(folder); }
+    const fn = prompt('保存总表到文件夹：', pc);
+    if (fn) {
+        let f = systemData.folders.find(x=>x.name===fn);
+        if(!f){f={id:'F'+Date.now(),name:fn};systemData.folders.push(f);}
         systemData.routes.push({
-            id: 'R' + Date.now(),
-            folderId: folder.id,
-            productName: pName,
-            productCode: pCode,
-            stations: JSON.parse(JSON.stringify(systemData.stations)),
-            time: new Date().toLocaleString()
+            id:'R'+Date.now(),
+            folderId:f.id,
+            productName:pn,productCode:pc,
+            stations:JSON.parse(JSON.stringify(systemData.stations)),
+            time:new Date().toLocaleString()
         });
         saveAll();
     }
 }
 
 function copyExcelTable() {
-    const table = document.getElementById('excelTable');
-    const range = document.createRange();
-    range.selectNode(table);
-    window.getSelection().removeAllRanges();
-    window.getSelection().addRange(range);
-    document.execCommand('copy');
-    alert('已复制，可直接粘贴到 Excel');
-}
-
-// ================== 合并 Excel ==================
-function startMergeToExcel() {
-    mergeMode = true;
-    renderMyDesign();
-    setTimeout(() => {
-        if (confirm('勾选要合并的项目后点确定')) doMergeToExcel();
-    }, 800);
-}
-
-function doMergeToExcel() {
-    const checks = document.querySelectorAll('.merge-item:checked');
-    if (checks.length < 2) {
-        alert('至少选择 2 个项目');
-        mergeMode = false;
-        renderMyDesign();
-        return;
-    }
-
-    const ids = Array.from(checks).map(c => c.dataset.id);
-    const items = systemData.routes.filter(r => ids.includes(r.id));
-
-    const table = document.getElementById('mergeExcelTable');
-    table.innerHTML = `
-        <tr>
-            <th>序号</th>
-            <th>来源产品</th>
-            <th>工站</th>
-            <th>工艺流程</th>
-            <th>设备工装</th>
-        </tr>
-    `;
-
-    let index = 1;
-    items.forEach(it => {
-        it.stations.forEach(st => {
-            const row = document.createElement('tr');
-            const flow = st.steps.join(' → ');
-            const device = (st.deviceList || []).join('，');
-            row.innerHTML = `
-                <td>${index++}</td>
-                <td>${it.productName}（${it.productCode}）</td>
-                <td>${st.name}</td>
-                <td>${flow}</td>
-                <td>${device}</td>
-            `;
-            table.appendChild(row);
-        });
-    });
-
-    document.getElementById('mergeExcelArea').style.display = 'block';
-    mergeMode = false;
-    renderMyDesign();
-    alert('合并完成，Excel 表格已生成');
-}
-
-function copyMergeExcel() {
-    const t = document.getElementById('mergeExcelTable');
+    const t = document.getElementById('excelTable');
     const r = document.createRange();
     r.selectNode(t);
     window.getSelection().removeAllRanges();
     window.getSelection().addRange(r);
     document.execCommand('copy');
-    alert('合并表格已复制');
+    alert('已复制，可粘贴到Excel');
 }
 
-// ================== 我的设计 ==================
+// 合并
+function startMergeToExcel() {
+    mergeMode = true;
+    renderMyDesign();
+    setTimeout(()=>{if(confirm('勾选后确定'))doMergeToExcel()},500);
+}
+function doMergeToExcel() {
+    const cs = document.querySelectorAll('.merge-item:checked');
+    if(cs.length<2)return alert('至少2个');
+    const ids = Array.from(cs).map(i=>i.dataset.id);
+    const items = systemData.routes.filter(r=>ids.includes(r.id));
+
+    const t = document.getElementById('mergeExcelTable');
+    t.innerHTML=`
+    <tr><th>序号</th><th>来源产品</th><th>工站</th><th>工艺流程</th><th>设备工装</th></tr>
+    `;
+    let idx=1;
+    items.forEach(it=>{
+        it.stations.forEach(st=>{
+            const row = document.createElement('tr');
+            row.innerHTML=`
+            <td>${idx++}</td>
+            <td>${it.productName}(${it.productCode})</td>
+            <td>${st.name}</td>
+            <td>${st.steps.join('→')}</td>
+            <td>${(st.deviceList||[]).join('，')}</td>`;
+            t.appendChild(row);
+        });
+    });
+    document.getElementById('mergeExcelArea').style.display='block';
+    mergeMode=false;
+    renderMyDesign();
+}
+function copyMergeExcel() {
+    const t=document.getElementById('mergeExcelTable');
+    const r=document.createRange();r.selectNode(t);
+    window.getSelection().removeAllRanges();window.getSelection().addRange(r);
+    document.execCommand('copy');alert('已复制');
+}
+
+// 我的设计
 function renderMyDesign() {
     const list = document.getElementById('myDesignList');
-    list.innerHTML = '';
-    systemData.folders.forEach(folder => {
-        const routes = systemData.routes.filter(r => r.folderId === folder.id);
-        const fEl = document.createElement('div');
-        fEl.className = 'folder';
-        fEl.innerHTML = `
-            <span onclick="toggleFolder('${folder.id}')">📁 ${folder.name}</span>
-            <div>
-                <button class="btn btn-default btn-sm" onclick="renameFolder('${folder.id}')">重命名</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteFolder('${folder.id}')">删除</button>
-            </div>
-        `;
-        list.appendChild(fEl);
-
-        const ctn = document.createElement('div');
-        ctn.className = 'folder-content';
-        ctn.id = 'fc_' + folder.id;
-        ctn.style.display = 'none';
-
-        routes.forEach(route => {
-            const item = document.createElement('div');
-            item.className = 'route-item';
-            item.innerHTML = `
-                <div>
-                    ${mergeMode ? '<input type="checkbox" class="merge-item" data-id="' + route.id + '">' : ''}
-                    ${route.productName}（${route.productCode}）·${route.time}
-                </div>
-                <button class="btn btn-danger btn-sm" onclick="deleteRoute('${route.id}')">删</button>
-            `;
-            ctn.appendChild(item);
+    list.innerHTML='';
+    systemData.folders.forEach(f=>{
+        const routes=systemData.routes.filter(r=>r.folderId===f.id);
+        const fe=document.createElement('div');
+        fe.className='folder';
+        fe.innerHTML=`<span onclick="toggleFolder('${f.id}')">📁${f.name}</span>
+        <div>
+        <button class="btn btn-default btn-sm" onclick="renameFolder('${f.id}')">重命名</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteFolder('${f.id}')">删除</button>
+        </div>`;
+        list.appendChild(fe);
+        const ce=document.createElement('div');
+        ce.className='folder-content';ce.id='fc_'+f.id;
+        routes.forEach(r=>{
+            const re=document.createElement('div');
+            re.className='route-item';
+            re.innerHTML=`<div>${mergeMode?'<input type="checkbox" class="merge-item" data-id="'+r.id+'">':''}${r.productName}(${r.productCode})·${r.time}</div><button class="btn btn-danger btn-sm" onclick="deleteRoute('${r.id}')">删</button>`;
+            ce.appendChild(re);
         });
-        list.appendChild(ctn);
+        list.appendChild(ce);
     });
 }
+function toggleFolder(id){const e=document.getElementById('fc_'+id);e.style.display=e.style.display=='none'?'block':'none';}
+function renameFolder(id){const f=systemData.folders.find(x=>x.id===id);const n=prompt('新名',f.name);if(n){f.name=n;saveAll();renderMyDesign();}}
+function deleteFolder(id){if(!confirm('删文件夹？'))return;systemData.folders=systemData.folders.filter(x=>x.id!==id);systemData.routes=systemData.routes.filter(x=>x.folderId!==id);saveAll();renderMyDesign();}
+function deleteRoute(id){if(!confirm('删项目？'))return;systemData.routes=systemData.routes.filter(x=>x.id!==id);saveAll();renderMyDesign();}
 
-function toggleFolder(id) {
-    const e = document.getElementById('fc_' + id);
-    e.style.display = e.style.display === 'none' ? 'block' : 'none';
-}
-function renameFolder(id) {
-    const f = systemData.folders.find(x => x.id === id);
-    const n = prompt('新名称：', f.name);
-    if (n) { f.name = n; saveAll(); renderMyDesign(); }
-}
-function deleteFolder(id) {
-    if (!confirm('删除整个文件夹？')) return;
-    systemData.folders = systemData.folders.filter(x => x.id !== id);
-    systemData.routes = systemData.routes.filter(x => x.folderId !== id);
-    saveAll();
-    renderMyDesign();
-}
-function deleteRoute(id) {
-    if (!confirm('删除该项目？')) return;
-    systemData.routes = systemData.routes.filter(x => x.id !== id);
-    saveAll();
-    renderMyDesign();
-}
-
-// ================== 基础 ==================
-function saveAll() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(systemData));
-}
-function initPage() {
-    const local = localStorage.getItem(STORAGE_KEY);
-    if (local) systemData = JSON.parse(local);
-    document.getElementById('productName').value = systemData.product.name;
-    document.getElementById('productCode').value = systemData.product.code;
+// 基础
+function saveAll(){localStorage.setItem(STORAGE_KEY,JSON.stringify(systemData));}
+function initPage(){
+    const local=localStorage.getItem(STORAGE_KEY);
+    if(local)systemData=JSON.parse(local);
     renderStationSelect();
-    if (systemData.currentStationId) {
-        document.getElementById('stationSelect').value = systemData.currentStationId;
+    if(systemData.currentStationId){
+        document.getElementById('stationSelect').value=systemData.currentStationId;
         switchStation();
     }
     renderHistorySteps();
 }
-function initDragEvent() {
-    setTimeout(() => {
-        document.querySelectorAll('.action-item').forEach(i => {
-            i.ondragstart = e => { dragStepName = i.dataset.name; };
+function initDragEvent(){
+    setTimeout(()=>{
+        document.querySelectorAll('.action-item').forEach(i=>{
+            i.ondragstart=e=>{dragStepName=i.dataset.name;};
         });
-    }, 100);
-    const c = document.getElementById('stepCanvas');
-    c.ondragover = e => e.preventDefault();
-    c.ondrop = e => {
+    },100);
+    const c=document.getElementById('stepCanvas');
+    c.ondragover=e=>e.preventDefault();
+    c.ondrop=e=>{
         e.preventDefault();
-        if (!systemData.currentStationId) { alert('请先选择工站'); return; }
+        if(!systemData.currentStationId)return alert('先选工站');
         addStepToCanvas(dragStepName);
         renderHistorySteps();
     };
 }
-function initTabEvent() {
-    document.querySelectorAll('.tab-item').forEach(i => {
-        i.onclick = function () {
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+function initTabEvent(){
+    document.querySelectorAll('.tab-item').forEach(i=>{
+        i.onclick=function(){
+            document.querySelectorAll('.tab-item').forEach(t=>t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
             this.classList.add('active');
             document.getElementById(this.dataset.tab).classList.add('active');
         };
     });
 }
-function renderStationSelect() {
-    const s = document.getElementById('stationSelect');
-    s.innerHTML = '<option value="">--请选择--</option>';
-    systemData.stations.forEach(st => {
-        const o = document.createElement('option');
-        o.value = st.id;
-        o.textContent = st.name || '工站';
+function renderStationSelect(){
+    const s=document.getElementById('stationSelect');
+    s.innerHTML='<option value="">--请选择--</option>';
+    systemData.stations.forEach(st=>{
+        const o=document.createElement('option');
+        o.value=st.id;o.textContent=st.name||'工站';
         s.appendChild(o);
     });
 }
-function renderStepCanvas(steps = []) {
-    const c = document.getElementById('stepCanvas');
-    const e = document.getElementById('canvasEmpty');
-    c.innerHTML = '';
-    if (steps.length === 0) { c.appendChild(e); return; }
-    steps.forEach(step => {
-        const d = document.createElement('div');
-        d.className = 'step-item';
-        d.innerHTML = `<span>${step}</span><button class="del-btn" onclick="deleteStep(this,'${step}')">×</button>`;
+function renderStepCanvas(steps=[]){
+    const c=document.getElementById('stepCanvas');
+    const e=document.getElementById('canvasEmpty');
+    c.innerHTML='';
+    if(steps.length===0){c.appendChild(e);return;}
+    steps.forEach(step=>{
+        const d=document.createElement('div');
+        d.className='step-item';
+        d.innerHTML=`<span>${step}</span><button class="del-btn" onclick="deleteStep(this,'${step}')">×</button>`;
         c.appendChild(d);
     });
 }
-function renderHistorySteps() {
-    const h = document.getElementById('historySteps');
-    const set = new Set();
-    systemData.stations.forEach(s => s.steps.forEach(t => set.add(t)));
-    if (set.size === 0) { h.innerHTML = '<div class="empty-tip">暂无</div>'; return; }
-    h.innerHTML = '';
-    Array.from(set).forEach(t => {
-        const d = document.createElement('div');
-        d.className = 'action-item';
-        d.textContent = t;
-        d.draggable = true;
-        d.dataset.name = t;
-        d.ondragstart = e => { dragStepName = t; };
+function renderHistorySteps(){
+    const h=document.getElementById('historySteps');
+    const set=new Set();
+    systemData.stations.forEach(s=>s.steps.forEach(t=>set.add(t)));
+    if(set.size===0){h.innerHTML='<div class="empty-tip">暂无</div>';return;}
+    h.innerHTML='';
+    Array.from(set).forEach(t=>{
+        const d=document.createElement('div');
+        d.className='action-item';d.textContent=t;d.draggable=true;d.dataset.name=t;
+        d.ondragstart=e=>{dragStepName=t;};
         h.appendChild(d);
     });
 }
-function addNewStation() {
-    const t = new Date().toISOString().split('T')[0];
-    const st = {
-        id: 'S' + Date.now(), name: '', processNo: '', workNum: 1,
-        version: 'V1.0', createDate: t, updateDate: t,
-        compiler: '', signer: '', equipment: '', tags: ['静电防护', '外观检查', '重点岗位'],
-        steps: [], deviceList: []
+function addNewStation(){
+    const t=new Date().toISOString().split('T')[0];
+    const st={
+        id:'S'+Date.now(),name:'',processNo:'',workNum:1,
+        version:'V1.0',createDate:t,updateDate:t,
+        compiler:'',signer:'',equipment:'',tags:['静电防护','外观检查','重点岗位'],
+        steps:[],deviceList:[]
     };
     systemData.stations.push(st);
-    systemData.currentStationId = st.id;
+    systemData.currentStationId=st.id;
     saveAll();
     renderStationSelect();
-    document.getElementById('stationSelect').value = st.id;
+    document.getElementById('stationSelect').value=st.id;
     switchStation();
 }
-function switchStation() {
-    const id = document.getElementById('stationSelect').value;
-    if (!id) {
-        systemData.currentStationId = '';
-        document.getElementById('currentStationName').textContent = '未选择';
+function switchStation(){
+    const id=document.getElementById('stationSelect').value;
+    if(!id){
+        systemData.currentStationId='';
+        document.getElementById('currentStationName').textContent='未选择';
         renderStepCanvas();
         resetStationAttr();
-        saveAll();
-        return;
+        saveAll();return;
     }
-    const st = systemData.stations.find(x => x.id === id);
-    systemData.currentStationId = id;
-    document.getElementById('currentStationName').textContent = st.name || '工站';
+    const st=systemData.stations.find(x=>x.id===id);
+    systemData.currentStationId=id;
+    document.getElementById('currentStationName').textContent=st.name||'工站';
     renderStepCanvas(st.steps);
     renderStationAttr(st);
-    currentDeviceList = [...(st.deviceList || [])];
+    currentDeviceList=[...(st.deviceList||[])];
     renderDeviceList();
     saveAll();
 }
-function deleteCurrentStation() {
-    if (!systemData.currentStationId || !confirm('删除？')) return;
-    systemData.stations = systemData.stations.filter(x => x.id !== systemData.currentStationId);
-    systemData.currentStationId = '';
+function deleteCurrentStation(){
+    if(!systemData.currentStationId||!confirm('删？'))return;
+    systemData.stations=systemData.stations.filter(x=>x.id!==systemData.currentStationId);
+    systemData.currentStationId='';
     saveAll();
     renderStationSelect();
-    document.getElementById('currentStationName').textContent = '未选择';
+    document.getElementById('currentStationName').textContent='未选择';
     renderStepCanvas();
     resetStationAttr();
     renderHistorySteps();
 }
-function renderStationAttr(st) {
-    document.getElementById('stationName').value = st.name || '';
-    document.getElementById('processNo').value = st.processNo || '';
-    document.getElementById('workNum').value = st.workNum || 1;
-    document.getElementById('version').value = st.version || 'V1.0';
-    document.getElementById('createDate').value = st.createDate;
-    document.getElementById('updateDate').value = st.updateDate;
-    document.getElementById('compiler').value = st.compiler || '';
-    document.getElementById('signer').value = st.signer || '';
-    document.getElementById('equipment').value = st.equipment || '';
-    const map = {
-        staticProtect: '静电防护',
-        appearanceCheck: '外观检查',
-        keyPost: '重点岗位',
-        functionTest: '功能测试'
-    };
-    for (const k in map) document.getElementById(k).checked = st.tags.includes(map[k]);
+function renderStationAttr(st){
+    document.getElementById('stationName').value=st.name||'';
+    document.getElementById('processNo').value=st.processNo||'';
+    document.getElementById('workNum').value=st.workNum||1;
+    document.getElementById('version').value=st.version||'V1.0';
+    document.getElementById('createDate').value=st.createDate;
+    document.getElementById('updateDate').value=st.updateDate;
+    document.getElementById('compiler').value=st.compiler||'';
+    document.getElementById('signer').value=st.signer||'';
+    document.getElementById('equipment').value=st.equipment||'';
+    const map={staticProtect:'静电防护',appearanceCheck:'外观检查',keyPost:'重点岗位',functionTest:'功能测试'};
+    for(const k in map)document.getElementById(k).checked=st.tags.includes(map[k]);
 }
-function resetStationAttr() {
-    const t = new Date().toISOString().split('T')[0];
-    document.getElementById('stationName').value = '';
-    document.getElementById('processNo').value = '';
-    document.getElementById('workNum').value = 1;
-    document.getElementById('version').value = 'V1.0';
-    document.getElementById('createDate').value = t;
-    document.getElementById('updateDate').value = t;
-    document.getElementById('compiler').value = '';
-    document.getElementById('signer').value = '';
-    document.getElementById('equipment').value = '';
-    document.getElementById('staticProtect').checked = true;
-    document.getElementById('appearanceCheck').checked = true;
-    document.getElementById('keyPost').checked = true;
-    document.getElementById('functionTest').checked = false;
-    currentDeviceList = [];
-    renderDeviceList();
+function resetStationAttr(){
+    const t=new Date().toISOString().split('T')[0];
+    document.getElementById('stationName').value='';
+    document.getElementById('processNo').value='';
+    document.getElementById('workNum').value=1;
+    document.getElementById('version').value='V1.0';
+    document.getElementById('createDate').value=t;
+    document.getElementById('updateDate').value=t;
+    document.getElementById('compiler').value='';
+    document.getElementById('signer').value='';
+    document.getElementById('equipment').value='';
+    document.getElementById('staticProtect').checked=true;
+    document.getElementById('appearanceCheck').checked=true;
+    document.getElementById('keyPost').checked=true;
+    document.getElementById('functionTest').checked=false;
+    currentDeviceList=[];renderDeviceList();
 }
-function addStepToCanvas(name) {
-    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
-    if (st.steps.includes(name)) { alert('已存在'); return; }
+function addStepToCanvas(name){
+    const st=systemData.stations.find(x=>x.id===systemData.currentStationId);
+    if(st.steps.includes(name))return alert('已存在');
     st.steps.push(name);
     renderStepCanvas(st.steps);
 }
-function deleteStep(el, name) {
-    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
-    st.steps = st.steps.filter(s => s !== name);
+function deleteStep(el,name){
+    const st=systemData.stations.find(x=>x.id===systemData.currentStationId);
+    st.steps=st.steps.filter(s=>s!==name);
     el.parentElement.remove();
-    if (st.steps.length === 0) renderStepCanvas();
+    if(st.steps.length===0)renderStepCanvas();
     renderHistorySteps();
 }
-function clearCurrentStationSteps() {
-    if (!systemData.currentStationId || !confirm('清空？')) return;
-    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
-    st.steps = [];
-    renderStepCanvas();
-    renderHistorySteps();
+function clearCurrentStationSteps(){
+    if(!systemData.currentStationId||!confirm('清空？'))return;
+    const st=systemData.stations.find(x=>x.id===systemData.currentStationId);
+    st.steps=[];renderStepCanvas();renderHistorySteps();
 }
-function saveStationAttr() {
-    if (!systemData.currentStationId) return;
-    const st = systemData.stations.find(x => x.id === systemData.currentStationId);
-    st.name = document.getElementById('stationName').value.trim();
-    st.processNo = document.getElementById('processNo').value.trim();
-    st.workNum = +document.getElementById('workNum').value || 1;
-    st.version = document.getElementById('version').value.trim();
-    st.createDate = document.getElementById('createDate').value;
-    st.updateDate = document.getElementById('updateDate').value;
-    st.compiler = document.getElementById('compiler').value.trim();
-    st.signer = document.getElementById('signer').value.trim();
-    st.equipment = document.getElementById('equipment').value.trim();
-    st.deviceList = [...currentDeviceList];
-    const map = {
-        staticProtect: '静电防护',
-        appearanceCheck: '外观检查',
-        keyPost: '重点岗位',
-        functionTest: '功能测试'
-    };
-    st.tags = [];
-    for (const k in map) if (document.getElementById(k).checked) st.tags.push(map[k]);
-    document.getElementById('currentStationName').textContent = st.name || '工站';
+function saveStationAttr(){
+    if(!systemData.currentStationId)return;
+    const st=systemData.stations.find(x=>x.id===systemData.currentStationId);
+    st.name=document.getElementById('stationName').value.trim();
+    st.processNo=document.getElementById('processNo').value.trim();
+    st.workNum=+document.getElementById('workNum').value||1;
+    st.version=document.getElementById('version').value.trim();
+    st.createDate=document.getElementById('createDate').value;
+    st.updateDate=document.getElementById('updateDate').value;
+    st.compiler=document.getElementById('compiler').value.trim();
+    st.signer=document.getElementById('signer').value.trim();
+    st.equipment=document.getElementById('equipment').value.trim();
+    st.deviceList=[...currentDeviceList];
+    const map={staticProtect:'静电防护',appearanceCheck:'外观检查',keyPost:'重点岗位',functionTest:'功能测试'};
+    st.tags=[];for(const k in map)if(document.getElementById(k).checked)st.tags.push(map[k]);
+    document.getElementById('currentStationName').textContent=st.name||'工站';
     renderStationSelect();
     saveAll();
 }
-function previewImages() { }
 </script>
 </body>
 </html>
