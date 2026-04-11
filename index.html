@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SOP工艺管理系统</title>
+    <!-- 引入SheetJS库用于生成Excel文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <style>
         /* 全局样式 */
         * {
@@ -469,6 +471,8 @@
                 <button class="btn btn-primary" onclick="addProcessItem('main')">新增主线工序</button>
                 <button class="btn btn-warning" onclick="addProcessItem('branch')">新增支线工序</button>
                 <button class="btn btn-success" onclick="saveFlowStructureToDesign()">保存工艺流程结构</button>
+                <!-- 新增：导出工艺流程结构到Excel按钮 -->
+                <button class="btn btn-info" onclick="exportFlowStructureToExcel()">导出工艺流程到Excel</button>
                 <!-- 新增：页面2的我的设计按钮 -->
                 <button class="btn btn-info" onclick="goToMyDesignFromPage2()">📋 我的设计</button>
                 <button class="btn btn-default" onclick="switchPage('page1')">返回分类</button>
@@ -589,11 +593,11 @@
                 <button class="btn btn-success" style="padding:12px 28px;font-size:16px;" onclick="saveAllToExcelAndDesign()">
                     📥 一键保存全部到Excel+我的设计
                 </button>
-                <p class="storage-tip">💡 保存后可在「我的设计」中查看所有记录</p>
+                <p class="storage-tip">💡 保存后可在「我的设计」中查看所有记录，同时自动下载Excel文件</p>
             </div>
 
             <div id="excelOutputArea" class="excel-box" style="display:none;">
-                <h4>Excel 表格（可直接复制粘贴）</h4>
+                <h4>Excel 表格预览（可直接复制粘贴）</h4>
                 <table id="excelTable" class="excel-table"></table>
                 <button class="copy-btn" onclick="copyExcel()">复制表格</button>
             </div>
@@ -1291,7 +1295,7 @@ function saveCurrentToDesign() {
     alert(`${currentFlowType}工艺 - 当前工站已保存到「我的设计」！`);
 }
 
-// 保存全部工站并生成Excel
+// 保存全部工站并生成可下载的Excel文件（核心修改）
 function saveAllToExcelAndDesign() {
     const currentData = getCurrentData();
     const pn = document.getElementById('productName').value || '未命名产品';
@@ -1320,7 +1324,10 @@ function saveAllToExcelAndDesign() {
     
     saveDataToLocalStorage();
     
-    // 生成Excel表格
+    // 生成并下载Excel文件（核心新增）
+    exportToExcel(currentData.stations, pn, pc);
+    
+    // 同时保留原有表格预览
     const table = document.getElementById('excelTable');
     table.innerHTML = `
     <tr>
@@ -1344,9 +1351,105 @@ function saveAllToExcelAndDesign() {
     });
     
     document.getElementById('excelOutputArea').style.display = 'block';
-    alert(`${currentFlowType}工艺 - 已保存到「我的设计」并生成Excel表格！`);
+    alert(`${currentFlowType}工艺 - 已保存到「我的设计」并生成可下载的Excel文件！`);
 }
 
+// 新增：生成并下载标准Excel文件（.xlsx）
+function exportToExcel(stations, productName, productCode) {
+    // 1. 构造Excel数据（符合SheetJS格式）
+    const excelData = [
+        // 表头
+        ['序号', '产品名称', '产品代码', '工站', '工序编号', '工艺流程', '设备', '作业人数', '版本', '所属分类'],
+        // 数据行
+        ...stations.map((st, i) => [
+            i+1,
+            productName,
+            productCode,
+            st.name || '',
+            st.processNo || '',
+            st.steps.join(' → '),
+            (st.deviceList || []).join('，'),
+            st.workNum || 1,
+            st.version || 'V1.0',
+            currentFlowType
+        ])
+    ];
+
+    // 2. 创建工作簿和工作表
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData); // 数组转工作表
+
+    // 3. 设置列宽（优化Excel显示）
+    const columnWidths = [
+        { wch: 6 },  // 序号
+        { wch: 20 }, // 产品名称
+        { wch: 15 }, // 产品代码
+        { wch: 15 }, // 工站
+        { wch: 12 }, // 工序编号
+        { wch: 30 }, // 工艺流程
+        { wch: 25 }, // 设备
+        { wch: 8 },  // 作业人数
+        { wch: 8 },  // 版本
+        { wch: 10 }  // 所属分类
+    ];
+    worksheet['!cols'] = columnWidths;
+
+    // 4. 将工作表添加到工作簿
+    XLSX.utils.book_append_sheet(workbook, worksheet, `${currentFlowType}工艺数据`);
+
+    // 5. 下载Excel文件（自动触发下载）
+    XLSX.writeFile(
+        workbook,
+        `${productName}_${currentFlowType}工艺_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`
+    );
+}
+
+// 新增：导出工艺流程结构到Excel
+function exportFlowStructureToExcel() {
+    const currentData = getCurrentData();
+    const flowHeader = currentData.flowHeader;
+    
+    // 构造工艺流程结构的Excel数据
+    const excelData = [
+        // 表头
+        ['线路类型', '线路名称', '工序编号', '工序名称', '产品名称', '产品型号', '文件编号', '版本'],
+        // 数据行
+        ...currentData.flowStructure.flatMap(line => 
+            line.items.map(item => [
+                line.type === 'main' ? '主线' : '支线',
+                line.label,
+                item.code,
+                item.name,
+                flowHeader.productName,
+                flowHeader.productModel,
+                flowHeader.fileCode,
+                flowHeader.version
+            ])
+        )
+    ];
+
+    // 创建工作簿和工作表
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+    
+    // 设置列宽
+    worksheet['!cols'] = [
+        { wch: 8 }, { wch: 15 }, { wch: 12 }, { wch: 30 },
+        { wch: 20 }, { wch: 15 }, { wch: 20 }, { wch: 8 }
+    ];
+
+    XLSX.utils.book_append_sheet(workbook, worksheet, `${currentFlowType}工艺流程结构`);
+    
+    // 下载文件
+    XLSX.writeFile(
+        workbook,
+        `${flowHeader.productName}_${currentFlowType}工艺流程结构_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`
+    );
+    
+    alert('工艺流程结构已导出为Excel文件！');
+}
+
+// 保留原有复制表格功能
 function copyExcel() {
     const range = document.createRange();
     range.selectNode(document.getElementById('excelTable'));
